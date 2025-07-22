@@ -6,11 +6,12 @@ cc_library(
 
 cc_library(
     name = "chip8",
+    srcs = ["chip8.cc"],
     hdrs = ["chip8.h"],
 )
 
 cc_binary(
-    name = "hello-world",
+    name = "main",
     srcs = ["main.cc"],
     deps = [
         ":chip8",
