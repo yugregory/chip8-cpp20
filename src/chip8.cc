@@ -43,8 +43,10 @@ bool Chip8::loadRom(const std::filesystem::path &path) {
 }
 
 bool Chip8::emulate_cycle(uint16_t address) {
-  std::cout << "The isntruction for this cycle is: " << std::hex << std::setw(2)
+  std::cout << "The instruction for this cycle is: " << std::hex << std::setw(2)
             << std::setfill('0') << static_cast<unsigned int>(memory_[address])
+            << " " << std::hex << std::setw(2) << std::setfill('0')
+            << static_cast<unsigned int>(memory_[address + 1])
             << " at address: " << address << std::endl;
   return true;
 }
@@ -56,7 +58,7 @@ bool Chip8::run() {
                 << program_counter_ << std::endl;
       return false;
     }
-    program_counter_++;
+    program_counter_ += 2;
   }
   return true;
 }
