@@ -23,6 +23,8 @@ private:
   uint16_t program_counter_;
   std::array<std::uint16_t, 16> stack_;
   std::uint8_t stack_pointer_;
+
+  std::array<uint8_t, 64 * 32> display_;
 };
 
 } // namespace chip8
