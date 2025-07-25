@@ -21,3 +21,10 @@ cc_library(
     path = "/opt/homebrew/opt/sdl3",
 )
 use_repo(local_deps_extension, "sdl3")
+
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    commit = "4f28899228fb3ad0126897876f147ca15026151e",
+    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
+)
