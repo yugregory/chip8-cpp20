@@ -1,8 +1,0 @@
-# .bazelrc
-
-# --- Add this section ---
-# Configuration to generate compile_commands.json
-# Usage: bazel build --config=compdb //...
-build:compdb --aspects=@bazel-compile-commands-extractor//:aspect.bzl%extract_compile_commands
-build:compdb --output_groups=compilation_database
-# -------------------------
