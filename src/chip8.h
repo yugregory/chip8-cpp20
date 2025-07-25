@@ -11,7 +11,9 @@ class Chip8 {
 public:
   bool loadRom(const std::filesystem::path &path);
 
-  bool run();
+  bool execute_cycle();
+  bool should_draw();
+  const std::array<uint8_t, 64 * 32> &display();
 
 private:
   bool emulate_cycle(uint16_t address);
@@ -23,6 +25,9 @@ private:
   uint16_t program_counter_;
   std::array<std::uint16_t, 16> stack_;
   std::uint8_t stack_pointer_;
+
+  std::array<uint8_t, 64 * 32> display_;
+  bool redraw_;
 };
 
 } // namespace chip8

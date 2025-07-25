@@ -13,8 +13,10 @@ cc_library(
 cc_binary(
     name = "main",
     srcs = ["main.cc"],
+    copts = ["-Iexternal/sdl3/include"],
     deps = [
         ":chip8",
         ":core",
+        "@sdl3",
     ],
 )

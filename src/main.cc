@@ -1,3 +1,4 @@
+#include <SDL3/SDL.h>
 #include <iostream>
 
 #include "chip8.h"
@@ -9,13 +10,48 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   chip8::Chip8 emulator;
-  bool success = emulator.loadRom(std::filesystem::path(argv[1]));
-  if (!success) {
+  if (!emulator.loadRom(std::filesystem::path(argv[1]))) {
     return -1;
   }
-  success = emulator.run();
-  if (!success) {
-    return -1;
+
+  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Window *window = SDL_CreateWindow("CHIP-8 Emulator",
+                                        /*width=*/1024, /*height=*/512, 0);
+  SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr);
+  SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+                                           SDL_TEXTUREACCESS_STATIC, 64, 32);
+
+  // Pixels to be rendered from the original display
+  uint32_t pixels[64 * 32];
+  while (true) {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+      if (event.type == SDL_EVENT_QUIT) {
+        break;
+      }
+    }
+    bool success = emulator.execute_cycle();
+    if (success) {
+      std::cerr << "Could not emulate cycle" << std::endl;
+      return -1;
+    }
+    if (emulator.should_draw()) {
+      for (int i = 0; i < 64 * 32; ++i) {
+        pixels[i] = (emulator.display()[i] == 1) ? 0xFFFFFFFF : 0xFF000000;
+      }
+
+      SDL_UpdateTexture(texture, NULL, pixels, 64 * sizeof(uint32_t));
+
+      SDL_RenderClear(renderer);
+      SDL_RenderTexture(renderer, texture, NULL, NULL);
+      SDL_RenderPresent(renderer);
+    }
+    SDL_Delay(2);
   }
+
+  SDL_DestroyTexture(texture);
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
+  SDL_Quit();
   return 0;
 }

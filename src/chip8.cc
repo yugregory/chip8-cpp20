@@ -42,25 +42,21 @@ bool Chip8::loadRom(const std::filesystem::path &path) {
   return true;
 }
 
-bool Chip8::emulate_cycle(uint16_t address) {
+bool Chip8::execute_cycle() {
+  std::byte b1 = memory_[program_counter_];
+  std::byte b2 = memory_[program_counter_ + 1];
   std::cout << "The instruction for this cycle is: " << std::hex << std::setw(2)
-            << std::setfill('0') << static_cast<unsigned int>(memory_[address])
-            << " " << std::hex << std::setw(2) << std::setfill('0')
-            << static_cast<unsigned int>(memory_[address + 1])
-            << " at address: " << address << std::endl;
+            << std::setfill('0') << static_cast<unsigned int>(b1) << " "
+            << std::hex << std::setw(2) << std::setfill('0')
+            << static_cast<unsigned int>(b2)
+            << " at address: " << program_counter_ << std::endl;
+  program_counter_ += 2;
+  redraw_ = true;
   return true;
 }
 
-bool Chip8::run() {
-  while (program_counter_ < program_end_address_) {
-    if (!emulate_cycle(program_counter_)) {
-      std::cerr << "Failed to emulate_cycle at program_counter: "
-                << program_counter_ << std::endl;
-      return false;
-    }
-    program_counter_ += 2;
-  }
-  return true;
-}
+bool Chip8::should_draw() { return redraw_; }
+
+const std::array<uint8_t, 64 * 32> &Chip8::display() { return display_; }
 
 } // namespace chip8
