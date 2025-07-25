@@ -136,6 +136,25 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "//:local_deps.bzl%local_deps_extension": {
+      "general": {
+        "bzlTransitiveDigest": "CZtpCorQQ3DJASI+rhmvhCV9cqN2RLLfiqUWSLNQUFM=",
+        "usagesDigest": "UYghTSRvdMZ2woMTd5uDIRxCMG3BQX/RgDJGdZs2f7s=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "sdl3": {
+            "repoRuleId": "@@//:local_deps.bzl%my_local_repository",
+            "attributes": {
+              "path": "/opt/homebrew/opt/sdl3",
+              "build_file_content": "load(\"@rules_cc//cc:defs.bzl\", \"cc_library\")\n\ncc_library(\n    name = \"sdl3\",\n    visibility = [\"//visibility:public\"],\n    includes = [\"include\"],\n    hdrs = glob([\"include/SDL3/**/*.h\"]),\n    srcs = glob([\"lib/libSDL3.dylib\"]),\n)\n"
+            }
+          }
+        },
+        "recordedRepoMappingEntries": []
+      }
+    },
     "@@rules_kotlin+//src/main/starlark/core/repositories:bzlmod_setup.bzl%rules_kotlin_extensions": {
       "general": {
         "bzlTransitiveDigest": "hUTp2w+RUVdL7ma5esCXZJAFnX7vLbVfLd7FwnQI6bU=",
