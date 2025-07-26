@@ -20,7 +20,6 @@ private:
   bool emulate_cycle(uint16_t address);
 
   std::array<std::byte, 4096> memory_;
-  uint16_t program_end_address_;
   std::array<std::uint8_t, 16> registers_;
   uint16_t index_register_;
   uint16_t program_counter_;

@@ -12,7 +12,7 @@ namespace {
 
 constexpr size_t program_start = 0x200;
 
-void print_instructions(uint8_t b1, uint8_t b2, uint8_t program_counter) {
+void print_instructions(uint8_t b1, uint8_t b2, uint16_t program_counter) {
   std::cout << "The instruction for this cycle is: " << std::hex
             << std::uppercase << std::setfill('0') << std::setw(2) << (int)b1
             << " " << std::hex << std::uppercase << std::setfill('0')

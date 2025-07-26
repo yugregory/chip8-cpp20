@@ -19,11 +19,10 @@ public:
 private:
   int width_;
   int height_;
-  int scale_;
   std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window_;
   std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> renderer_;
   std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture_;
-  std::array<uint8_t, 64 * 32> screen_;
+  std::array<uint32_t, 64 * 32> screen_;
 };
 
 // Statically assert that SDLSystem satisfies the AVSystem concept.

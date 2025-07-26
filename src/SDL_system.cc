@@ -18,8 +18,7 @@ void handle_quit_signals(int sig) {
 } // namespace
 
 SDLSystem::SDLSystem(int width, int height, int scale)
-    : width_(width), height_(height), scale_(scale),
-      window_(nullptr, SDL_DestroyWindow),
+    : width_(width), height_(height), window_(nullptr, SDL_DestroyWindow),
       renderer_(nullptr, SDL_DestroyRenderer),
       texture_(nullptr, SDL_DestroyTexture) {
   SDL_Init(SDL_INIT_VIDEO);
@@ -45,6 +44,7 @@ void SDLSystem::poll_events(bool &quit) {
       quit = true;
     }
   }
+  SDL_Delay(2);
 }
 
 void SDLSystem::draw(const Chip8 &chip8) {
@@ -57,7 +57,6 @@ void SDLSystem::draw(const Chip8 &chip8) {
   SDL_RenderClear(renderer_.get());
   SDL_RenderTexture(renderer_.get(), texture_.get(), NULL, NULL);
   SDL_RenderPresent(renderer_.get());
-  SDL_Delay(2);
 }
 
 } // namespace chip8
