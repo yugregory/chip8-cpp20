@@ -12,13 +12,30 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "sdl_lib",
+    srcs = ["SDL_system.cc"],
+    hdrs = [
+        "SDL_system.h",
+        "V_system.h",
+    ],
+    deps = [
+        ":chip8",
+        "@sdl3",
+    ],
+)
+
 cc_binary(
     name = "main",
     srcs = ["main.cc"],
-    copts = ["-Iexternal/sdl3/include"],
+    copts = [
+        "-Iexternal/sdl3/include",
+        "-std=c++23",
+    ],
     deps = [
         ":app_error",
         ":chip8",
+        ":sdl_lib",
         "@sdl3",
     ],
 )
