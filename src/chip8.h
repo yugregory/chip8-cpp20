@@ -1,6 +1,7 @@
 #ifndef SRC_CHIP8_H
 #define SRC_CHIP8_H
 
+#include "app_error.h"
 #include <array>
 #include <cstddef>
 #include <filesystem>
@@ -9,7 +10,7 @@ namespace chip8 {
 
 class Chip8 {
 public:
-  bool loadRom(const std::filesystem::path &path);
+  common::Status loadRom(const std::filesystem::path &path);
 
   bool execute_cycle();
   bool should_draw();

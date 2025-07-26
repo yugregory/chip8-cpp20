@@ -1,0 +1,4 @@
+i# .bazelrc
+
+# Always add the C++23 standard flag to C++ compilation steps
+build --copt="-std=c++23"

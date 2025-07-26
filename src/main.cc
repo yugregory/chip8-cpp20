@@ -1,8 +1,8 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 
+#include "app_error.h"
 #include "chip8.h"
-#include "core.h"
 #include "signal.h"
 
 namespace {
@@ -34,7 +34,9 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   chip8::Chip8 emulator;
-  if (!emulator.loadRom(std::filesystem::path(argv[1]))) {
+  common::Status status = emulator.loadRom(std::filesystem::path(argv[1]));
+  if (!status) {
+    std::cout << "Error when loading rom: " << status.error() << std::endl;
     return -1;
   }
 
