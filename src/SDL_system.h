@@ -2,7 +2,9 @@
 #define SRC_SDL_SYSTEM_H
 
 #include "V_system.h"
+#include "app_error.h"
 #include "chip8.h"
+
 #include <SDL3/SDL.h>
 #include <array>
 #include <memory>
@@ -11,7 +13,11 @@ namespace chip8 {
 
 class SDLSystem {
 public:
-  SDLSystem(int width, int height, int scale);
+  SDLSystem(int width, int height, SDL_Window *window = nullptr,
+            SDL_Renderer *renderer = nullptr, SDL_Texture *texture = nullptr);
+  SDLSystem(const SDLSystem &rhs) = delete;
+  SDLSystem(SDLSystem &&rhs) = default;
+
   ~SDLSystem();
   void poll_events(bool &quit);
   void draw(const Chip8 &chip8);
@@ -27,6 +33,9 @@ private:
 
 // Statically assert that SDLSystem satisfies the AVSystem concept.
 static_assert(VSystem<SDLSystem>);
+
+common::StatusOr<SDLSystem *> create_sdl_system(int width, int height,
+                                                int scale);
 
 } // namespace chip8
 

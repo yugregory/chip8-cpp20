@@ -28,6 +28,8 @@ struct AppError {
 
 using Status = std::expected<void, AppError>;
 
+template <typename T> using StatusOr = std::expected<T, AppError>;
+
 } // namespace common
 
 #endif

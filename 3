@@ -12,22 +12,23 @@ constexpr int kWidth = 64;
 constexpr int kHeight = 32;
 constexpr int kScale = 16;
 
-common::Status run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
+int run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
   while (true) {
     bool quit = false;
     system.poll_events(quit);
     if (quit) {
-      return {};
+      return 0;
     }
     common::Status status = chip8.execute_cycle();
     if (!status) {
-      return status;
+      std::cerr << "Could not emulate cycle: " << status.error() << std::endl;
+      return -1;
     }
     if (chip8.should_draw()) {
       system.draw(chip8);
     }
   }
-  return {};
+  return 0;
 }
 
 } // namespace
@@ -39,24 +40,12 @@ int main(int argc, char *argv[]) {
   }
 
   chip8::Chip8 chip8;
-  common::Status load_status = chip8.loadRom(std::filesystem::path(argv[1]));
-  if (!load_status) {
-    std::cerr << "Error when loading rom: " << load_status.error() << std::endl;
+  common::Status status = chip8.loadRom(std::filesystem::path(argv[1]));
+  if (!status) {
+    std::cerr << "Error when loading rom: " << status.error() << std::endl;
     return -1;
   }
-
-  common::StatusOr<chip8::SDLSystem *> system =
+  common::StatusOr<chip8::SDLSystem &> system =
       chip8::create_sdl_system(kWidth, kHeight, kScale);
-  if (!system.has_value()) {
-    std::cerr << "Error when setting up sdl system: " << system.error()
-              << std::endl;
-  }
-
-  common::Status run_status = run(chip8, *system.value());
-  if (!run_status) {
-    std::cerr << "Error when running the rom: " << run_status.error()
-              << std::endl;
-    return -1;
-  }
-  return 0;
+  return run(chip8, xsystem.value());
 }

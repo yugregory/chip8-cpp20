@@ -1,4 +1,5 @@
 #include "SDL_system.h"
+#include "app_error.h"
 
 #include <SDL3/SDL.h>
 #include <iostream>
@@ -15,25 +16,27 @@ void handle_quit_signals(int sig) {
   SDL_PushEvent(&event);
 }
 
-} // namespace
-
-SDLSystem::SDLSystem(int width, int height, int scale)
-    : width_(width), height_(height), window_(nullptr, SDL_DestroyWindow),
-      renderer_(nullptr, SDL_DestroyRenderer),
-      texture_(nullptr, SDL_DestroyTexture) {
+common::StatusOr<SDLSystem *> create(int width, int height, int scale) {
   SDL_Init(SDL_INIT_VIDEO);
-  int screen_width = width_ * scale;
-  int screen_height = height_ * scale;
-  std::cout << "screen_width: " << screen_width
-            << " screen_height: " << screen_height << std::endl;
-  window_.reset(
-      SDL_CreateWindow("CHIP-8 Emulator", screen_width, screen_height, 0));
-  renderer_.reset(SDL_CreateRenderer(window_.get(), nullptr));
-  texture_.reset(SDL_CreateTexture(renderer_.get(), SDL_PIXELFORMAT_ARGB8888,
-                                   SDL_TEXTUREACCESS_STATIC, width, height));
+  SDL_Window *window =
+      SDL_CreateWindow("CHIP-8 Emulator", width * scale, height * scale, 0);
+  SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr);
+  SDL_Texture *texture =
+      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+                        SDL_TEXTUREACCESS_STATIC, width, height);
   signal(SIGINT, handle_quit_signals);
   signal(SIGTERM, handle_quit_signals);
+  static SDLSystem system(width, height, window, renderer, texture);
+  return &system;
 }
+
+} // namespace
+
+SDLSystem::SDLSystem(int width, int height, SDL_Window *window,
+                     SDL_Renderer *renderer, SDL_Texture *texture)
+    : width_(width), height_(height), window_(window, SDL_DestroyWindow),
+      renderer_(renderer, SDL_DestroyRenderer),
+      texture_(texture, SDL_DestroyTexture) {}
 
 SDLSystem::~SDLSystem() { SDL_Quit(); }
 
@@ -57,6 +60,13 @@ void SDLSystem::draw(const Chip8 &chip8) {
   SDL_RenderClear(renderer_.get());
   SDL_RenderTexture(renderer_.get(), texture_.get(), NULL, NULL);
   SDL_RenderPresent(renderer_.get());
+}
+
+common::StatusOr<SDLSystem *> create_sdl_system(int width, int height,
+                                                int scale) {
+  static common::StatusOr<SDLSystem *> sdl_system =
+      create(width, height, scale);
+  return sdl_system;
 }
 
 } // namespace chip8
