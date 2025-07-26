@@ -3,6 +3,13 @@
 
 #include "chip8.h"
 #include "core.h"
+#include "signal.h"
+
+void handle_quit_signals(int sig) {
+  SDL_Event event;
+  event.type = SDL_EVENT_QUIT;
+  SDL_PushEvent(&event);
+}
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
@@ -20,6 +27,8 @@ int main(int argc, char *argv[]) {
   SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr);
   SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                            SDL_TEXTUREACCESS_STATIC, 64, 32);
+  signal(SIGINT, handle_quit_signals);
+  signal(SIGTERM, handle_quit_signals);
 
   // Pixels to be rendered from the original display
   uint32_t pixels[64 * 32];
