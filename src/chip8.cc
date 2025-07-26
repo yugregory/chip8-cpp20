@@ -57,6 +57,6 @@ bool Chip8::execute_cycle() {
 
 bool Chip8::should_draw() { return redraw_; }
 
-const std::array<uint8_t, 64 * 32> &Chip8::display() { return display_; }
+const std::array<uint8_t, 64 * 32> &Chip8::display() const { return display_; }
 
 } // namespace chip8
