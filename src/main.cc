@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
   chip8::Chip8 emulator;
   common::Status status = emulator.loadRom(std::filesystem::path(argv[1]));
   if (!status) {
-    std::cout << "Error when loading rom: " << status.error() << std::endl;
+    std::cerr << "Error when loading rom: " << status.error() << std::endl;
     return -1;
   }
 
@@ -57,9 +57,10 @@ int main(int argc, char *argv[]) {
         return 0;
       }
     }
-    bool success = emulator.execute_cycle();
-    if (!success) {
-      std::cerr << "Could not emulate cycle" << std::endl;
+    common::Status cycle_status = emulator.execute_cycle();
+    if (!cycle_status) {
+      std::cerr << "Could not emulate cycle: " << cycle_status.error()
+                << std::endl;
       return -1;
     }
     if (emulator.should_draw()) {

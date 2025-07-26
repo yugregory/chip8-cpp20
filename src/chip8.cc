@@ -23,29 +23,24 @@ void print_instructions(uint8_t b1, uint8_t b2, uint8_t program_counter) {
 } // namespace
 
 common::Status Chip8::loadRom(const std::filesystem::path &path) {
-  std::ifstream file(path, std::ios::binary);
-  if (!file.is_open()) {
+  std::ifstream file(path, std::ios::binary | std::ios::ate);
+  if (!file) {
     return std::unexpected(
         common::AppError{common::ErrorCode::IOError, "Unable to open file"});
   }
-  file.seekg(0, std::ios::end);
   std::streampos file_size = file.tellg();
   file.seekg(0, std::ios::beg);
-  std::vector<char> buffer(file_size);
-  file.read(buffer.data(), file_size);
+  file.read(reinterpret_cast<char *>(&memory_[program_start]), file_size);
   if (!file) {
     return std::unexpected(common::AppError{
         common::ErrorCode::IOError, "Failed to read ROM bytes from file"});
   }
   file.close();
-  std::transform(buffer.begin(), buffer.end(), memory_.begin() + program_start,
-                 [](char c) { return static_cast<std::byte>(c); });
-  program_end_address_ = program_start + file_size;
   program_counter_ = program_start;
   return {};
 }
 
-bool Chip8::execute_cycle() {
+common::Status Chip8::execute_cycle() {
   redraw_ = false;
   uint8_t b1 = static_cast<uint8_t>(memory_[program_counter_]);
   uint8_t b2 = static_cast<uint8_t>(memory_[program_counter_ + 1]);
@@ -56,7 +51,7 @@ bool Chip8::execute_cycle() {
     redraw_ = true;
   } else if (opcode == 0x01u) { // JP addr
     program_counter_ = ((b1 & 0x0Fu) << 8u) | b2;
-    return true;
+    return {};
   } else if (opcode == 0x0Au) { // Load Index Register
     index_register_ = ((b1 & 0x0Fu) << 8u) | b2;
   } else if (opcode == 0x06) { // Load Vx with value in b2
@@ -89,7 +84,7 @@ bool Chip8::execute_cycle() {
     redraw_ = true;
   }
   program_counter_ += 2;
-  return true;
+  return {};
 }
 
 bool Chip8::should_draw() { return redraw_; }

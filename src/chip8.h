@@ -12,7 +12,7 @@ class Chip8 {
 public:
   common::Status loadRom(const std::filesystem::path &path);
 
-  bool execute_cycle();
+  common::Status execute_cycle();
   bool should_draw();
   const std::array<uint8_t, 64 * 32> &display() const;
 
