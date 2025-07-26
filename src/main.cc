@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     if (emulator.should_draw()) {
       draw_new_screen(emulator, screen, renderer, texture);
     }
-    SDL_Delay(1);
+    SDL_Delay(2);
   }
 
   SDL_DestroyTexture(texture);
