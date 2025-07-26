@@ -13,7 +13,7 @@ public:
 
   bool execute_cycle();
   bool should_draw();
-  const std::array<uint8_t, 64 * 32> &display();
+  const std::array<uint8_t, 64 * 32> &display() const;
 
 private:
   bool emulate_cycle(uint16_t address);

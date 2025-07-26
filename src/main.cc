@@ -5,11 +5,28 @@
 #include "core.h"
 #include "signal.h"
 
+namespace {
+
 void handle_quit_signals(int sig) {
   SDL_Event event;
   event.type = SDL_EVENT_QUIT;
   SDL_PushEvent(&event);
 }
+
+void draw_new_screen(const chip8::Chip8 &emulator,
+                     std::array<uint32_t, 64 * 32> &screen,
+                     SDL_Renderer *renderer, SDL_Texture *texture) {
+  for (int i = 0; i < 64 * 32; ++i) {
+    screen[i] = (emulator.display()[i] == 1) ? 0xFFFFFFFF : 0xFF000000;
+  }
+
+  SDL_UpdateTexture(texture, NULL, screen.data(), 64 * sizeof(uint32_t));
+  SDL_RenderClear(renderer);
+  SDL_RenderTexture(renderer, texture, NULL, NULL);
+  SDL_RenderPresent(renderer);
+}
+
+} // namespace
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
@@ -30,32 +47,23 @@ int main(int argc, char *argv[]) {
   signal(SIGINT, handle_quit_signals);
   signal(SIGTERM, handle_quit_signals);
 
-  // Pixels to be rendered from the original display
-  uint32_t pixels[64 * 32];
+  std::array<uint32_t, 64 * 32> screen;
   while (true) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_EVENT_QUIT) {
-        break;
+        return 0;
       }
     }
     bool success = emulator.execute_cycle();
-    if (success) {
+    if (!success) {
       std::cerr << "Could not emulate cycle" << std::endl;
       return -1;
     }
     if (emulator.should_draw()) {
-      for (int i = 0; i < 64 * 32; ++i) {
-        pixels[i] = (emulator.display()[i] == 1) ? 0xFFFFFFFF : 0xFF000000;
-      }
-
-      SDL_UpdateTexture(texture, NULL, pixels, 64 * sizeof(uint32_t));
-
-      SDL_RenderClear(renderer);
-      SDL_RenderTexture(renderer, texture, NULL, NULL);
-      SDL_RenderPresent(renderer);
+      draw_new_screen(emulator, screen, renderer, texture);
     }
-    SDL_Delay(2);
+    SDL_Delay(1);
   }
 
   SDL_DestroyTexture(texture);
