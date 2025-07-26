@@ -1,30 +1,16 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 
+#include "SDL_system.h"
 #include "app_error.h"
 #include "chip8.h"
 #include "signal.h"
 
 namespace {
 
-void handle_quit_signals(int sig) {
-  SDL_Event event;
-  event.type = SDL_EVENT_QUIT;
-  SDL_PushEvent(&event);
-}
-
-void draw_new_screen(const chip8::Chip8 &emulator,
-                     std::array<uint32_t, 64 * 32> &screen,
-                     SDL_Renderer *renderer, SDL_Texture *texture) {
-  for (int i = 0; i < 64 * 32; ++i) {
-    screen[i] = (emulator.display()[i] == 1) ? 0xFFFFFFFF : 0xFF000000;
-  }
-
-  SDL_UpdateTexture(texture, NULL, screen.data(), 64 * sizeof(uint32_t));
-  SDL_RenderClear(renderer);
-  SDL_RenderTexture(renderer, texture, NULL, NULL);
-  SDL_RenderPresent(renderer);
-}
+constexpr int kWidth = 64;
+constexpr int kHeight = 32;
+constexpr int kScale = 16;
 
 } // namespace
 
@@ -33,45 +19,31 @@ int main(int argc, char *argv[]) {
     std::cerr << "No ROM passed into emulator." << std::endl;
     return -1;
   }
-  chip8::Chip8 emulator;
-  common::Status status = emulator.loadRom(std::filesystem::path(argv[1]));
+
+  chip8::Chip8 chip8;
+  common::Status status = chip8.loadRom(std::filesystem::path(argv[1]));
   if (!status) {
     std::cerr << "Error when loading rom: " << status.error() << std::endl;
     return -1;
   }
 
-  SDL_Init(SDL_INIT_VIDEO);
-  SDL_Window *window = SDL_CreateWindow("CHIP-8 Emulator",
-                                        /*width=*/1024, /*height=*/512, 0);
-  SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr);
-  SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-                                           SDL_TEXTUREACCESS_STATIC, 64, 32);
-  signal(SIGINT, handle_quit_signals);
-  signal(SIGTERM, handle_quit_signals);
-
-  std::array<uint32_t, 64 * 32> screen;
+  chip8::SDLSystem system(kWidth, kHeight, kScale);
   while (true) {
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_EVENT_QUIT) {
-        return 0;
-      }
+    bool quit = false;
+    system.poll_events(quit);
+    if (quit) {
+      return 0;
     }
-    common::Status cycle_status = emulator.execute_cycle();
+    common::Status cycle_status = chip8.execute_cycle();
     if (!cycle_status) {
       std::cerr << "Could not emulate cycle: " << cycle_status.error()
                 << std::endl;
       return -1;
     }
-    if (emulator.should_draw()) {
-      draw_new_screen(emulator, screen, renderer, texture);
+    if (chip8.should_draw()) {
+      system.draw(chip8);
     }
-    SDL_Delay(2);
   }
 
-  SDL_DestroyTexture(texture);
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
   return 0;
 }
