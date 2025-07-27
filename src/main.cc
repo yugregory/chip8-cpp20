@@ -23,7 +23,7 @@ common::Status run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
     if (!status) {
       return status;
     }
-    if (chip8.should_draw()) {
+    if (chip8.redraw_) {
       system.draw(chip8);
     }
   }
@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
   }
 
   chip8::Chip8 chip8;
+  chip8.setup();
   common::Status load_status = chip8.loadRom(std::filesystem::path(argv[1]));
   if (!load_status) {
     std::cerr << "Error when loading rom: " << load_status.error() << std::endl;
