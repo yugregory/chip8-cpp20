@@ -45,14 +45,14 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  common::StatusOr<chip8::SDLSystem *> system =
+  common::StatusOr<chip8::SDLSystem> system =
       chip8::create_sdl_system(kWidth, kHeight, kScale);
   if (!system.has_value()) {
     std::cerr << "Error when setting up sdl system: " << system.error()
               << std::endl;
   }
 
-  common::Status run_status = run(chip8, *system.value());
+  common::Status run_status = run(chip8, system.value());
   if (!run_status) {
     std::cerr << "Error when running the rom: " << run_status.error()
               << std::endl;

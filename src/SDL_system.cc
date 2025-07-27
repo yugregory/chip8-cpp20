@@ -2,6 +2,7 @@
 #include "app_error.h"
 
 #include <SDL3/SDL.h>
+#include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -16,20 +17,6 @@ void handle_quit_signals(int sig) {
   SDL_PushEvent(&event);
 }
 
-common::StatusOr<SDLSystem *> create(int width, int height, int scale) {
-  SDL_Init(SDL_INIT_VIDEO);
-  SDL_Window *window =
-      SDL_CreateWindow("CHIP-8 Emulator", width * scale, height * scale, 0);
-  SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr);
-  SDL_Texture *texture =
-      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-                        SDL_TEXTUREACCESS_STATIC, width, height);
-  signal(SIGINT, handle_quit_signals);
-  signal(SIGTERM, handle_quit_signals);
-  static SDLSystem system(width, height, window, renderer, texture);
-  return &system;
-}
-
 } // namespace
 
 SDLSystem::SDLSystem(int width, int height, SDL_Window *window,
@@ -38,7 +25,11 @@ SDLSystem::SDLSystem(int width, int height, SDL_Window *window,
       renderer_(renderer, SDL_DestroyRenderer),
       texture_(texture, SDL_DestroyTexture) {}
 
-SDLSystem::~SDLSystem() { SDL_Quit(); }
+SDLSystem::~SDLSystem() {
+  std::cout << "Destructor is invoked" << std::endl;
+  SDL_Quit();
+  exit(1);
+}
 
 void SDLSystem::poll_events(bool &quit) {
   SDL_Event event;
@@ -62,11 +53,19 @@ void SDLSystem::draw(const Chip8 &chip8) {
   SDL_RenderPresent(renderer_.get());
 }
 
-common::StatusOr<SDLSystem *> create_sdl_system(int width, int height,
-                                                int scale) {
-  static common::StatusOr<SDLSystem *> sdl_system =
-      create(width, height, scale);
-  return sdl_system;
+common::StatusOr<SDLSystem> create_sdl_system(int width, int height,
+                                              int scale) {
+  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Window *window =
+      SDL_CreateWindow("CHIP-8 Emulator", width * scale, height * scale, 0);
+  SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr);
+  SDL_Texture *texture =
+      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+                        SDL_TEXTUREACCESS_STATIC, width, height);
+  signal(SIGINT, handle_quit_signals);
+  signal(SIGTERM, handle_quit_signals);
+  return common::StatusOr<SDLSystem>(std::in_place, width, height, window,
+                                     renderer, texture);
 }
 
 } // namespace chip8

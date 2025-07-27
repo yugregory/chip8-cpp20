@@ -34,8 +34,7 @@ private:
 // Statically assert that SDLSystem satisfies the AVSystem concept.
 static_assert(VSystem<SDLSystem>);
 
-common::StatusOr<SDLSystem *> create_sdl_system(int width, int height,
-                                                int scale);
+common::StatusOr<SDLSystem> create_sdl_system(int width, int height, int scale);
 
 } // namespace chip8
 
