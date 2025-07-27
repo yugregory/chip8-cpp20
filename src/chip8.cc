@@ -139,27 +139,43 @@ common::Status register_ops(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   uint8_t Vy = (b2 & 0xF0u) >> 4u;
   uint8_t op = (b2 & 0x0Fu);
   switch (op) {
-  case 0x0:
+  case 0x0u:
     em.registers_[Vx] = em.registers_[Vy];
     break;
-  case 0x1:
+  case 0x1u:
     em.registers_[Vx] |= em.registers_[Vy];
     break;
-  case 0x2:
+  case 0x2u:
     em.registers_[Vx] &= em.registers_[Vy];
     break;
-  case 0x3:
+  case 0x3u:
     em.registers_[Vx] ^= em.registers_[Vy];
     break;
-  case 0x4:
+  case 0x4u: {
+    uint16_t sum = em.registers_[Vx] + em.registers_[Vy];
+    em.registers_[0xFu] = (sum > 255) ? 1u : 0u;
+    em.registers_[Vx] = (sum & 0xFFu);
     break;
-  case 0x5:
+  }
+  case 0x5u: {
+    int diff = em.registers_[Vx] - em.registers_[Vy];
+    em.registers_[0xFu] = diff > 0 ? 1u : 0u;
+    em.registers_[Vx] -= em.registers_[Vy];
     break;
-  case 0x6:
+  }
+  case 0x6u:
+    em.registers_[0xFu] = em.registers_[Vx] & 0x1u;
+    em.registers_[Vx] >>= 1;
     break;
-  case 0x7:
+  case 0x7u: {
+    int diff = em.registers_[Vy] - em.registers_[Vx];
+    em.registers_[0xFu] = diff > 0 ? 1u : 0u;
+    em.registers_[Vx] = em.registers_[Vy] - em.registers_[Vy];
     break;
-  case 0xE:
+  }
+  case 0xEu:
+    em.registers_[0xFu] = (em.registers_[Vx] & 0x80u) >> 7u;
+    em.registers_[Vx] <<= 1;
     break;
   }
   return {};
