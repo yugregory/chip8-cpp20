@@ -43,7 +43,7 @@ void SDLSystem::poll_events(bool &quit) {
 
 void SDLSystem::draw(const Chip8 &chip8) {
   for (int i = 0; i < width_ * height_; ++i) {
-    screen_[i] = (chip8.display()[i] == 1) ? 0xFFFFFFFF : 0xFF000000;
+    screen_[i] = (chip8.display_[i] == 1) ? 0xFFFFFFFF : 0xFF000000;
   }
 
   SDL_UpdateTexture(texture_.get(), NULL, screen_.data(),

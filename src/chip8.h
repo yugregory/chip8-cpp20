@@ -10,15 +10,11 @@ namespace chip8 {
 
 class Chip8 {
 public:
+  void setup();
   common::Status loadRom(const std::filesystem::path &path);
-
   common::Status execute_cycle();
-  bool should_draw();
-  const std::array<uint8_t, 64 * 32> &display() const;
 
-private:
-  bool emulate_cycle(uint16_t address);
-
+public:
   std::array<std::byte, 4096> memory_;
   std::array<std::uint8_t, 16> registers_;
   uint16_t index_register_;
@@ -28,6 +24,8 @@ private:
 
   std::array<uint8_t, 64 * 32> display_;
   bool redraw_;
+
+  std::array<common::Status (*)(Chip8 &, uint8_t, uint8_t), 16> execute_;
 };
 
 } // namespace chip8
