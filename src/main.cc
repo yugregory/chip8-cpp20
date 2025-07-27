@@ -39,7 +39,6 @@ int main(int argc, char *argv[]) {
   }
 
   chip8::Chip8 chip8;
-  chip8.setup();
   common::Status load_status = chip8.loadRom(std::filesystem::path(argv[1]));
   if (!load_status) {
     std::cerr << "Error when loading rom: " << load_status.error() << std::endl;
