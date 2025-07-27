@@ -12,6 +12,22 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "chip8_test",
+    srcs = ["chip8_test.cc"],
+    args = [
+        "--test_output=all",
+    ],
+    copts = [
+        "-std=c++23",
+    ],
+    deps = [
+        ":chip8",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "sdl_lib",
     srcs = ["SDL_system.cc"],

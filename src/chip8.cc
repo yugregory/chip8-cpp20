@@ -181,7 +181,8 @@ common::Status reg_random_plus_offset(chip8::Chip8 &em, uint8_t b1,
 
 Chip8::Chip8()
     : rand_gen_(std::chrono::system_clock::now().time_since_epoch().count()),
-      rand_byte_(std::uniform_int_distribution<uint8_t>(0, 255U)) {
+      rand_byte_(std::uniform_int_distribution<uint8_t>(0, 255U)),
+      program_counter_(program_start) {
   execute_[0x0] = &zero;
   execute_[0x1] = &jp;
   execute_[0x2] = &call;
@@ -206,13 +207,12 @@ common::Status Chip8::loadRom(const std::filesystem::path &path) {
   }
   std::streampos file_size = file.tellg();
   file.seekg(0, std::ios::beg);
-  file.read(reinterpret_cast<char *>(&memory_[program_start]), file_size);
+  file.read(reinterpret_cast<char *>(&memory_[program_counter_]), file_size);
   if (!file) {
     return std::unexpected(common::AppError{
         common::ErrorCode::IOError, "Failed to read ROM bytes from file"});
   }
   file.close();
-  program_counter_ = program_start;
   return {};
 }
 

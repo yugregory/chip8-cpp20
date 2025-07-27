@@ -3,6 +3,7 @@ module(
     version = "1.0",
 )
 
+bazel_dep(name = "googletest", version = "1.17.0")
 bazel_dep(name = "rules_cc", version = "0.1.1")
 
 local_deps_extension = use_extension("//:local_deps.bzl", "local_deps_extension")
