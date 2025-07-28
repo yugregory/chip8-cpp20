@@ -177,6 +177,9 @@ common::Status register_ops(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
     em.registers_[0xFu] = (em.registers_[Vx] & 0x80u) >> 7u;
     em.registers_[Vx] <<= 1;
     break;
+  default:
+    return std::unexpected(common::AppError{common::ErrorCode::InternalError,
+                                            "Register op is invalid"});
   }
   return {};
 }
@@ -190,6 +193,26 @@ common::Status reg_random_plus_offset(chip8::Chip8 &em, uint8_t b1,
                                       uint8_t b2) {
   uint8_t Vx = b1 & 0x0Fu;
   em.registers_[Vx] = em.rand_byte_(em.rand_gen_) & b2;
+  return {};
+}
+
+common::Status skip_key(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
+  uint8_t Vx = b1 & 0x0Fu;
+  uint8_t key = em.registers_[Vx];
+  bool pressed = em.keypad_[key];
+  switch (b2) {
+  case 0x9Eu:
+    if (pressed)
+      em.program_counter_ += 2;
+    break;
+  case 0xA1u:
+    if (!pressed)
+      em.program_counter_ += 2;
+    break;
+  default:
+    return std::unexpected(common::AppError{
+        common::ErrorCode::InternalError, "keypad skip operation is invalid"});
+  }
   return {};
 }
 
@@ -213,6 +236,7 @@ Chip8::Chip8()
   execute_[0xB] = &jp_offset;
   execute_[0xC] = &reg_random_plus_offset;
   execute_[0xD] = &draw;
+  execute_[0xE] = &skip_key;
 }
 
 common::Status Chip8::loadRom(const std::filesystem::path &path) {
