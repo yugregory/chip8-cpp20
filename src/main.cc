@@ -15,7 +15,7 @@ constexpr int kScale = 16;
 common::Status run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
   while (true) {
     bool quit = false;
-    system.poll_events(quit);
+    system.poll_events(quit, chip8.keypad_);
     if (quit) {
       return {};
     }
