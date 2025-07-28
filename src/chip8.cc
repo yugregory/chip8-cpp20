@@ -210,8 +210,8 @@ common::Status skip_key(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
       em.program_counter_ += 2;
     break;
   default:
-    return std::unexpected(common::AppError{common::ErrorCode::InternalError,
-                                            "Register op is invalid"});
+    return std::unexpected(common::AppError{
+        common::ErrorCode::InternalError, "keypad skip operation is invalid"});
   }
   return {};
 }
