@@ -29,6 +29,9 @@ public:
   std::array<uint8_t, 64 * 32> display_;
   bool redraw_;
 
+  uint8_t delay_timer_;
+  uint8_t sound_timer_;
+
   std::array<uint8_t, 16> keypad_;
 
   std::array<common::Status (*)(Chip8 &, uint8_t, uint8_t), 16> execute_;

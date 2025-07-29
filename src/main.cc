@@ -8,9 +8,9 @@
 
 namespace {
 
-constexpr int kWidth = 64;
-constexpr int kHeight = 32;
-constexpr int kScale = 16;
+constexpr int k_width = 64;
+constexpr int k_height = 32;
+constexpr int k_scale = 16;
 
 common::Status run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
   while (true) {
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   }
 
   common::StatusOr<chip8::SDLSystem> system =
-      chip8::create_sdl_system(kWidth, kHeight, kScale);
+      chip8::create_sdl_system(k_width, k_height, k_scale);
   if (!system.has_value()) {
     std::cerr << "Error when setting up sdl system: " << system.error()
               << std::endl;
