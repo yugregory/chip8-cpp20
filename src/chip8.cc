@@ -47,7 +47,6 @@ common::Status zero(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
     if (b2 == 0xE0u) {
       em.display_ = std::array<uint8_t, 64 * 32>{};
       em.redraw_ = true;
-      em.program_counter_ += 2;
     } else if (b2 == 0xEEu) {
       if (em.stack_pointer_ - 1 < 0) {
         return std::unexpected(
@@ -337,6 +336,9 @@ common::Status Chip8::loadRom(const std::filesystem::path &path) {
 common::Status Chip8::execute_cycle() {
   redraw_ = false;
   uint8_t b1 = static_cast<uint8_t>(memory_[program_counter_]);
+  if (b1 == 0x12u) {
+    return {};
+  }
   uint8_t b2 = static_cast<uint8_t>(memory_[program_counter_ + 1]);
   print_instructions(b1, b2, program_counter_);
   program_counter_ += 2;
