@@ -31,11 +31,63 @@ SDLSystem::~SDLSystem() {
   exit(1);
 }
 
-void SDLSystem::poll_events(bool &quit) {
+void SDLSystem::poll_events(bool &quit, std::array<uint8_t, 16> &keys) {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     if (event.type == SDL_EVENT_QUIT) {
       quit = true;
+    } else if (event.type == SDL_EVENT_KEY_DOWN ||
+               event.type == SDL_EVENT_KEY_UP) {
+      switch (event.key.key) {
+      case SDLK_X:
+        keys[0] = 1;
+        break;
+      case SDLK_1:
+        keys[1] = 1;
+        break;
+      case SDLK_2:
+        keys[2] = 1;
+        break;
+      case SDLK_3:
+        keys[3] = 1;
+        break;
+      case SDLK_Q:
+        keys[4] = 1;
+        break;
+      case SDLK_W:
+        keys[5] = 1;
+        break;
+      case SDLK_E:
+        keys[6] = 1;
+        break;
+      case SDLK_A:
+        keys[7] = 1;
+        break;
+      case SDLK_S:
+        keys[8] = 1;
+        break;
+      case SDLK_D:
+        keys[9] = 1;
+        break;
+      case SDLK_Z:
+        keys[0xA] = 1;
+        break;
+      case SDLK_C:
+        keys[0xB] = 1;
+        break;
+      case SDLK_4:
+        keys[0xC] = 1;
+        break;
+      case SDLK_R:
+        keys[0xD] = 1;
+        break;
+      case SDLK_F:
+        keys[0xE] = 1;
+        break;
+      case SDLK_V:
+        keys[0xF] = 1;
+        break;
+      }
     }
   }
   SDL_Delay(2);

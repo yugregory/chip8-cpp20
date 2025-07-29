@@ -19,7 +19,7 @@ public:
   SDLSystem(SDLSystem &&rhs) = default;
 
   ~SDLSystem();
-  void poll_events(bool &quit);
+  void poll_events(bool &quit, std::array<uint8_t, 16> &keys);
   void draw(const Chip8 &chip8);
 
 private:

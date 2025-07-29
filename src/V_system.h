@@ -2,6 +2,7 @@
 #define SRC_V_SYSTEM_H
 
 #include "chip8.h"
+#include <array>
 #include <concepts>
 #include <ostream>
 
@@ -11,7 +12,11 @@ template <typename T>
 concept VSystem = requires(T t, const Chip8 &chip8, int width, int height) {
   { T(width, height) };
 
-  { t.poll_events(std::declval<bool &>()) } -> std::same_as<void>;
+  {
+    t.poll_events(std::declval<bool &>(),
+                  std::declval<std::array<uint8_t, 16> &>())
+  } -> std::same_as<void>;
+
   { t.draw(chip8) } -> std::same_as<void>;
 };
 

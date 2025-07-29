@@ -11,7 +11,28 @@
 namespace chip8 {
 namespace {
 
-constexpr size_t program_start = 0x200;
+constexpr size_t k_program_start = 0x200;
+constexpr size_t k_font_address = 0x50;
+
+constexpr size_t k_font_space = 80;
+constexpr std::array<uint8_t, k_font_space> k_fontset = {
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
 
 void print_instructions(uint8_t b1, uint8_t b2, uint16_t program_counter) {
   std::cout << "The instruction for this cycle is: " << std::hex
@@ -216,12 +237,64 @@ common::Status skip_key(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   return {};
 }
 
+common::Status finstr(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
+  uint8_t Vx = b1 & 0x0Fu;
+  switch (b2) {
+  case 0x0Au: {
+    bool set = false;
+    for (uint8_t i = 0; i < 16; i++) {
+      if (em.keypad_[i]) {
+        em.registers_[Vx] = i;
+        set = true;
+      }
+    }
+    if (!set)
+      em.program_counter_ -= 2;
+    break;
+  }
+  case 0x15:
+    em.delay_timer_ = em.registers_[Vx];
+    break;
+  case 0x18:
+    em.sound_timer_ = em.registers_[Vx];
+    break;
+  case 0x1E:
+    em.index_register_ += em.registers_[Vx];
+    break;
+  case 0x29:
+    em.index_register_ = k_font_address + (5 * em.registers_[Vx]);
+  case 0x33: {
+    uint16_t value = em.registers_[Vx];
+    em.memory_[em.index_register_ + 2] = static_cast<std::byte>(value % 10);
+    value /= 10;
+    em.memory_[em.index_register_ + 1] = static_cast<std::byte>(value % 10);
+    value /= 10;
+    em.memory_[em.index_register_] = static_cast<std::byte>(value % 10);
+    break;
+  }
+  case 0x55:
+    for (uint8_t i = 0; i <= Vx; i++) {
+      em.memory_[em.index_register_ + i] =
+          static_cast<std::byte>(em.registers_[i]);
+    }
+  case 0x65:
+    for (uint8_t i = 0; i <= Vx; i++) {
+      em.registers_[i] =
+          static_cast<uint8_t>(em.memory_[em.index_register_ + i]);
+    }
+  default:
+    return std::unexpected(common::AppError{common::ErrorCode::InternalError,
+                                            "Invalid finstruction"});
+  }
+  return {};
+}
+
 } // namespace
 
 Chip8::Chip8()
     : rand_gen_(std::chrono::system_clock::now().time_since_epoch().count()),
       rand_byte_(std::uniform_int_distribution<uint8_t>(0, 255U)),
-      program_counter_(program_start) {
+      program_counter_(k_program_start) {
   execute_[0x0] = &zero;
   execute_[0x1] = &jp;
   execute_[0x2] = &call;
@@ -237,6 +310,11 @@ Chip8::Chip8()
   execute_[0xC] = &reg_random_plus_offset;
   execute_[0xD] = &draw;
   execute_[0xE] = &skip_key;
+  execute_[0xF] = &finstr;
+
+  for (size_t i = 0; k_font_space; i++) {
+    memory_[i + k_font_address] = static_cast<std::byte>(k_fontset[i]);
+  }
 }
 
 common::Status Chip8::loadRom(const std::filesystem::path &path) {
