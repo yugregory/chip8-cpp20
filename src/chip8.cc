@@ -15,7 +15,7 @@ constexpr size_t k_program_start = 0x200;
 constexpr size_t k_font_address = 0x50;
 
 constexpr size_t k_font_space = 80;
-constexpr std::array<uint8_t, k_font_space> k_fontset = {
+constexpr std::array<uint16_t, k_font_space> k_fontset = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
     0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -312,8 +312,8 @@ Chip8::Chip8()
   execute_[0xE] = &skip_key;
   execute_[0xF] = &finstr;
 
-  for (size_t i = 0; k_font_space; i++) {
-    memory_[i + k_font_address] = static_cast<std::byte>(k_fontset[i]);
+  for (size_t i = 0; i < k_font_space; i++) {
+    memory_[k_font_address + i] = static_cast<std::byte>(k_fontset[i]);
   }
 }
 
