@@ -173,7 +173,7 @@ common::Status register_ops(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
     break;
   case 0x4u: {
     uint16_t sum = em.registers_[Vx] + em.registers_[Vy];
-    em.registers_[0xFu] = (sum > 255) ? 1u : 0u;
+    em.registers_[0xFu] = (sum > 255u) ? 1u : 0u;
     em.registers_[Vx] = (sum & 0xFFu);
     break;
   }
