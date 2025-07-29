@@ -262,6 +262,7 @@ common::Status finstr(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
     break;
   case 0x29:
     em.index_register_ = k_font_address + (5 * em.registers_[Vx]);
+    break;
   case 0x33: {
     uint16_t value = em.registers_[Vx];
     em.memory_[em.index_register_ + 2] = static_cast<std::byte>(value % 10);
@@ -276,11 +277,13 @@ common::Status finstr(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
       em.memory_[em.index_register_ + i] =
           static_cast<std::byte>(em.registers_[i]);
     }
+    break;
   case 0x65:
     for (uint8_t i = 0; i <= Vx; i++) {
       em.registers_[i] =
           static_cast<uint8_t>(em.memory_[em.index_register_ + i]);
     }
+    break;
   default:
     return std::unexpected(common::AppError{common::ErrorCode::InternalError,
                                             "Invalid finstruction"});
@@ -336,9 +339,6 @@ common::Status Chip8::loadRom(const std::filesystem::path &path) {
 common::Status Chip8::execute_cycle() {
   redraw_ = false;
   uint8_t b1 = static_cast<uint8_t>(memory_[program_counter_]);
-  if (b1 == 0x12u) {
-    return {};
-  }
   uint8_t b2 = static_cast<uint8_t>(memory_[program_counter_ + 1]);
   print_instructions(b1, b2, program_counter_);
   program_counter_ += 2;
