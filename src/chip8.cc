@@ -302,11 +302,11 @@ Chip8::Chip8()
   execute_[0x2] = &call;
   execute_[0x3] = &skip_instr_equal;
   execute_[0x4] = &skip_instr_not_equal;
-  execute_[0x4] = &skip_reg_equal;
+  execute_[0x5] = &skip_reg_equal;
   execute_[0x6] = &ldv;
   execute_[0x7] = &addv;
   execute_[0x8] = &register_ops;
-  execute_[0x8] = &skip_reg_not_equal;
+  execute_[0x9] = &skip_reg_not_equal;
   execute_[0xA] = &ldi;
   execute_[0xB] = &jp_offset;
   execute_[0xC] = &reg_random_plus_offset;
