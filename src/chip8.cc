@@ -173,30 +173,36 @@ common::Status register_ops(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
     break;
   case 0x4u: {
     uint16_t sum = em.registers_[Vx] + em.registers_[Vy];
-    em.registers_[0xFu] = (sum > 255u) ? 1u : 0u;
     em.registers_[Vx] = (sum & 0xFFu);
+    em.registers_[0xFu] = (sum > 255u) ? 1u : 0u;
     break;
   }
   case 0x5u: {
     int diff = em.registers_[Vx] - em.registers_[Vy];
-    em.registers_[0xFu] = diff > 0 ? 1u : 0u;
     em.registers_[Vx] -= em.registers_[Vy];
+    em.registers_[0xFu] = (diff >= 0) ? 1u : 0u;
     break;
   }
-  case 0x6u:
-    em.registers_[0xFu] = em.registers_[Vx] & 0x1u;
+  case 0x6u: {
+    em.registers_[Vx] = em.registers_[Vy];
+    bool last_bit_set = em.registers_[Vx] & 0x1u;
     em.registers_[Vx] >>= 1;
+    em.registers_[0xFu] = last_bit_set ? 1 : 0;
     break;
+  }
   case 0x7u: {
     int diff = em.registers_[Vy] - em.registers_[Vx];
-    em.registers_[0xFu] = diff > 0 ? 1u : 0u;
     em.registers_[Vx] = em.registers_[Vy] - em.registers_[Vx];
+    em.registers_[0xFu] = (diff >= 0) ? 1u : 0u;
     break;
   }
-  case 0xEu:
-    em.registers_[0xFu] = (em.registers_[Vx] & 0x80u) >> 7u;
+  case 0xEu: {
+    em.registers_[Vx] = em.registers_[Vy];
+    bool last_bit_set = em.registers_[Vx] >> 7u;
     em.registers_[Vx] <<= 1;
+    em.registers_[0xFu] = last_bit_set ? 1 : 0;
     break;
+  }
   default:
     return std::unexpected(common::AppError{common::ErrorCode::InternalError,
                                             "Register op is invalid"});
