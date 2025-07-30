@@ -114,7 +114,7 @@ common::Status call(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
         common::AppError{common::ErrorCode::InternalError, "stack overflow"});
   }
   uint16_t address = ((b1 & 0x0Fu) << 8u) | b2;
-  em.stack_[em.stack_pointer_] = em.program_counter_ + 2;
+  em.stack_[em.stack_pointer_] = em.program_counter_;
   em.stack_pointer_ += 1;
   em.program_counter_ = address;
   return {};
@@ -173,7 +173,7 @@ common::Status register_ops(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
     break;
   case 0x4u: {
     uint16_t sum = em.registers_[Vx] + em.registers_[Vy];
-    em.registers_[0xFu] = (sum > 255) ? 1u : 0u;
+    em.registers_[0xFu] = (sum > 255u) ? 1u : 0u;
     em.registers_[Vx] = (sum & 0xFFu);
     break;
   }
@@ -190,7 +190,7 @@ common::Status register_ops(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   case 0x7u: {
     int diff = em.registers_[Vy] - em.registers_[Vx];
     em.registers_[0xFu] = diff > 0 ? 1u : 0u;
-    em.registers_[Vx] = em.registers_[Vy] - em.registers_[Vy];
+    em.registers_[Vx] = em.registers_[Vy] - em.registers_[Vx];
     break;
   }
   case 0xEu:
@@ -239,6 +239,9 @@ common::Status skip_key(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
 common::Status finstr(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   uint8_t Vx = b1 & 0x0Fu;
   switch (b2) {
+  case 0x07u:
+    em.registers_[Vx] = em.delay_timer_;
+    break;
   case 0x0Au: {
     bool set = false;
     for (uint8_t i = 0; i < 16; i++) {
