@@ -1,5 +1,7 @@
 #include <SDL3/SDL.h>
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 #include "SDL_system.h"
 #include "app_error.h"
@@ -12,19 +14,33 @@ constexpr int k_width = 64;
 constexpr int k_height = 32;
 constexpr int k_scale = 16;
 
+constexpr int k_cycles_per_second = 600;
+constexpr int k_timer_frequency = 60;
+constexpr int k_cycles_per_frame = k_cycles_per_second / k_timer_frequency;
+
+constexpr auto k_time_per_frame_ms =
+    std::chrono::duration<double, std::milli>(1000.0 / k_timer_frequency);
+
 common::Status run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
+  bool quit = false;
   while (true) {
-    bool quit = false;
+    std::chrono::time_point frame_start = std::chrono::system_clock::now();
     system.poll_events(quit, chip8.keypad_);
-    if (quit) {
+    if (quit)
       return {};
+    for (int i = 0; i < k_cycles_per_frame; i++) {
+      common::Status status = chip8.execute_cycle();
+      if (!status)
+        return status;
     }
-    common::Status status = chip8.execute_cycle();
-    if (!status) {
-      return status;
-    }
-    if (chip8.redraw_) {
+    if (chip8.redraw_)
       system.draw(chip8);
+    std::chrono::time_point frame_end = std::chrono::system_clock::now();
+    std::chrono::duration<double, std::milli> d = frame_end - frame_start;
+    std::chrono::duration<double, std::milli> sleep_time_ms =
+        k_time_per_frame_ms - d;
+    if (sleep_time_ms.count() > 0) {
+      std::this_thread::sleep_for(sleep_time_ms);
     }
   }
   return {};

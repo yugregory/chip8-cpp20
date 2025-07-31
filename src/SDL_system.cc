@@ -92,7 +92,6 @@ void SDLSystem::poll_events(bool &quit, std::array<uint8_t, 16> &keys) {
       }
     }
   }
-  SDL_Delay(2);
 }
 
 void SDLSystem::draw(const Chip8 &chip8) {
