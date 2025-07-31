@@ -225,13 +225,15 @@ common::Status reg_random_plus_offset(chip8::Chip8 &em, uint8_t b1,
 common::Status skip_key(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   uint8_t Vx = b1 & 0x0Fu;
   uint8_t key = em.registers_[Vx];
-  bool pressed = em.keypad_[key];
+  bool pressed = (em.keypad_[key] == 1u) ? true : false;
   switch (b2) {
   case 0x9Eu:
+    std::cout << "9E waiting for key: " << (int)key << std::endl;
     if (pressed)
       em.program_counter_ += 2;
     break;
   case 0xA1u:
+    std::cout << "A1 waiting for key: " << (int)key << std::endl;
     if (!pressed)
       em.program_counter_ += 2;
     break;
@@ -251,7 +253,7 @@ common::Status finstr(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   case 0x0Au: {
     bool set = false;
     for (uint8_t i = 0; i < 16; i++) {
-      if (em.keypad_[i]) {
+      if (em.keypad_[i] == 1u) {
         em.registers_[Vx] = i;
         set = true;
       }
@@ -306,22 +308,22 @@ Chip8::Chip8()
     : rand_gen_(std::chrono::system_clock::now().time_since_epoch().count()),
       rand_byte_(std::uniform_int_distribution<uint8_t>(0, 255U)),
       program_counter_(k_program_start) {
-  execute_[0x0] = &zero;
-  execute_[0x1] = &jp;
-  execute_[0x2] = &call;
-  execute_[0x3] = &skip_instr_equal;
-  execute_[0x4] = &skip_instr_not_equal;
-  execute_[0x5] = &skip_reg_equal;
-  execute_[0x6] = &ldv;
-  execute_[0x7] = &addv;
-  execute_[0x8] = &register_ops;
-  execute_[0x9] = &skip_reg_not_equal;
-  execute_[0xA] = &ldi;
-  execute_[0xB] = &jp_offset;
-  execute_[0xC] = &reg_random_plus_offset;
-  execute_[0xD] = &draw;
-  execute_[0xE] = &skip_key;
-  execute_[0xF] = &finstr;
+  execute_[0x0u] = &zero;
+  execute_[0x1u] = &jp;
+  execute_[0x2u] = &call;
+  execute_[0x3u] = &skip_instr_equal;
+  execute_[0x4u] = &skip_instr_not_equal;
+  execute_[0x5u] = &skip_reg_equal;
+  execute_[0x6u] = &ldv;
+  execute_[0x7u] = &addv;
+  execute_[0x8u] = &register_ops;
+  execute_[0x9u] = &skip_reg_not_equal;
+  execute_[0xAu] = &ldi;
+  execute_[0xBu] = &jp_offset;
+  execute_[0xCu] = &reg_random_plus_offset;
+  execute_[0xDu] = &draw;
+  execute_[0xEu] = &skip_key;
+  execute_[0xFu] = &finstr;
 
   for (size_t i = 0; i < k_font_space; i++) {
     memory_[k_font_address + i] = static_cast<std::byte>(k_fontset[i]);
@@ -352,7 +354,14 @@ common::Status Chip8::execute_cycle() {
   print_instructions(b1, b2, program_counter_);
   program_counter_ += 2;
   uint8_t opcode = b1 >> 4u;
-  return execute_[opcode](*this, b1, b2);
+  common::Status status = execute_[opcode](*this, b1, b2);
+  if (delay_timer_ > 0) {
+    --delay_timer_;
+  }
+  if (sound_timer_ > 0) {
+    --sound_timer_;
+  }
+  return status;
 }
 
 } // namespace chip8
