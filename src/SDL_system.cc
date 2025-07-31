@@ -28,7 +28,6 @@ SDLSystem::SDLSystem(int width, int height, SDL_Window *window,
 SDLSystem::~SDLSystem() {
   std::cout << "Destructor is invoked" << std::endl;
   SDL_Quit();
-  exit(1);
 }
 
 void SDLSystem::poll_events(bool &quit, std::array<uint8_t, 16> &keys) {
@@ -38,54 +37,57 @@ void SDLSystem::poll_events(bool &quit, std::array<uint8_t, 16> &keys) {
       quit = true;
     } else if (event.type == SDL_EVENT_KEY_DOWN ||
                event.type == SDL_EVENT_KEY_UP) {
+      uint8_t v = (event.type == SDL_EVENT_KEY_DOWN) ? 1u : 0u;
       switch (event.key.key) {
       case SDLK_X:
-        keys[0] = 1;
+        keys[0u] = v;
         break;
       case SDLK_1:
-        keys[1] = 1;
+        keys[1u] = v;
         break;
       case SDLK_2:
-        keys[2] = 1;
+        keys[2u] = v;
         break;
       case SDLK_3:
-        keys[3] = 1;
+        keys[3u] = v;
         break;
       case SDLK_Q:
-        keys[4] = 1;
+        keys[4u] = v;
         break;
       case SDLK_W:
-        keys[5] = 1;
+        keys[5u] = v;
         break;
       case SDLK_E:
-        keys[6] = 1;
+        keys[6u] = v;
         break;
       case SDLK_A:
-        keys[7] = 1;
+        keys[7u] = v;
         break;
       case SDLK_S:
-        keys[8] = 1;
+        keys[8u] = v;
         break;
       case SDLK_D:
-        keys[9] = 1;
+        keys[9u] = v;
         break;
       case SDLK_Z:
-        keys[0xA] = 1;
+        keys[0xAu] = v;
         break;
       case SDLK_C:
-        keys[0xB] = 1;
+        keys[0xBu] = v;
         break;
       case SDLK_4:
-        keys[0xC] = 1;
+        keys[0xCu] = v;
         break;
       case SDLK_R:
-        keys[0xD] = 1;
+        keys[0xDu] = v;
         break;
       case SDLK_F:
-        keys[0xE] = 1;
+        keys[0xEu] = v;
         break;
       case SDLK_V:
-        keys[0xF] = 1;
+        keys[0xFu] = v;
+        break;
+      default:
         break;
       }
     }
