@@ -13,8 +13,7 @@ concept VSystem = requires(T t, const Chip8 &chip8, int width, int height) {
   { T(width, height) };
 
   {
-    t.poll_events(std::declval<bool &>(),
-                  std::declval<std::array<uint8_t, 16> &>())
+    t.poll_events(std::declval<bool &>(), std::declval<Chip8 &>())
   } -> std::same_as<void>;
 
   { t.draw(chip8) } -> std::same_as<void>;

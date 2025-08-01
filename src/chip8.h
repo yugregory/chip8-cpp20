@@ -33,6 +33,8 @@ public:
   uint8_t sound_timer_;
 
   std::array<uint8_t, 16> keypad_;
+  bool waiting_for_key_press_ = false;
+  bool waiting_for_key_release_ = false;
 
   std::array<common::Status (*)(Chip8 &, uint8_t, uint8_t), 16> execute_;
 };

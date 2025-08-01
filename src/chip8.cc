@@ -86,16 +86,20 @@ common::Status draw(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   uint8_t Vx = b1 & 0x0Fu;
   uint8_t Vy = (b2 & 0xF0u) >> 4u;
   uint8_t height = b2 & 0x0Fu;
-  uint8_t x_coord = em.registers_[Vx];
-  uint8_t y_coord = em.registers_[Vy];
+  uint8_t x_coord = em.registers_[Vx] % 64;
+  uint8_t y_coord = em.registers_[Vy] % 32;
+  ;
   em.registers_[0xF] = 0;
   for (uint8_t i = 0; i < height; i++) {
     uint8_t sprite_byte =
         static_cast<uint8_t>(em.memory_[em.index_register_ + i]);
     for (uint8_t j = 0; j < 8; j++) {
       if ((sprite_byte & (0x80 >> j)) != 0) {
-        int x = (x_coord + j) % 64;
-        int y = (y_coord + i) % 32;
+        int x = (x_coord + j);
+        int y = (y_coord + i);
+        if (x >= 64 || y >= 32) {
+          continue;
+        }
         int pix = (y * 64) + x;
         if (em.display_[pix] == 1) {
           em.registers_[0xF] = 1;
@@ -164,12 +168,15 @@ common::Status register_ops(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
     break;
   case 0x1u:
     em.registers_[Vx] |= em.registers_[Vy];
+    em.registers_[0xFu] = 0u;
     break;
   case 0x2u:
     em.registers_[Vx] &= em.registers_[Vy];
+    em.registers_[0xFu] = 0u;
     break;
   case 0x3u:
     em.registers_[Vx] ^= em.registers_[Vy];
+    em.registers_[0xFu] = 0u;
     break;
   case 0x4u: {
     uint16_t sum = em.registers_[Vx] + em.registers_[Vy];
@@ -225,16 +232,13 @@ common::Status reg_random_plus_offset(chip8::Chip8 &em, uint8_t b1,
 common::Status skip_key(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   uint8_t Vx = b1 & 0x0Fu;
   uint8_t key = em.registers_[Vx];
-  bool pressed = (em.keypad_[key] == 1u) ? true : false;
   switch (b2) {
   case 0x9Eu:
-    std::cout << "9E waiting for key: " << (int)key << std::endl;
-    if (pressed)
+    if (em.keypad_[key] == 1u)
       em.program_counter_ += 2;
     break;
   case 0xA1u:
-    std::cout << "A1 waiting for key: " << (int)key << std::endl;
-    if (!pressed)
+    if (em.keypad_[key] != 1u)
       em.program_counter_ += 2;
     break;
   default:
@@ -252,14 +256,20 @@ common::Status finstr(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
     break;
   case 0x0Au: {
     bool set = false;
-    for (uint8_t i = 0; i < 16; i++) {
+    for (uint8_t i = 0; i < 16u; i++) {
       if (em.keypad_[i] == 1u) {
+        em.waiting_for_key_press_ = false;
+        em.waiting_for_key_release_ = true;
         em.registers_[Vx] = i;
         set = true;
+        break;
       }
     }
-    if (!set)
+    if (!set) {
+      em.waiting_for_key_press_ = true;
+      em.waiting_for_key_release_ = false;
       em.program_counter_ -= 2;
+    }
     break;
   }
   case 0x15:
@@ -288,12 +298,14 @@ common::Status finstr(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
       em.memory_[em.index_register_ + i] =
           static_cast<std::byte>(em.registers_[i]);
     }
+    em.index_register_ += (Vx + 1);
     break;
   case 0x65:
     for (uint8_t i = 0; i <= Vx; i++) {
       em.registers_[i] =
           static_cast<uint8_t>(em.memory_[em.index_register_ + i]);
     }
+    em.index_register_ += (Vx + 1);
     break;
   default:
     return std::unexpected(common::AppError{common::ErrorCode::InternalError,
@@ -328,6 +340,9 @@ Chip8::Chip8()
   for (size_t i = 0; i < k_font_space; i++) {
     memory_[k_font_address + i] = static_cast<std::byte>(k_fontset[i]);
   }
+  for (size_t i = 0; i < 16; i++) {
+    keypad_[i] = 0u;
+  }
 }
 
 common::Status Chip8::loadRom(const std::filesystem::path &path) {
@@ -348,19 +363,21 @@ common::Status Chip8::loadRom(const std::filesystem::path &path) {
 }
 
 common::Status Chip8::execute_cycle() {
-  redraw_ = false;
-  uint8_t b1 = static_cast<uint8_t>(memory_[program_counter_]);
-  uint8_t b2 = static_cast<uint8_t>(memory_[program_counter_ + 1]);
-  print_instructions(b1, b2, program_counter_);
-  program_counter_ += 2;
-  uint8_t opcode = b1 >> 4u;
-  common::Status status = execute_[opcode](*this, b1, b2);
   if (delay_timer_ > 0) {
     --delay_timer_;
   }
   if (sound_timer_ > 0) {
     --sound_timer_;
   }
+  if (waiting_for_key_press_ || waiting_for_key_release_) {
+    return {};
+  }
+  uint8_t b1 = static_cast<uint8_t>(memory_[program_counter_]);
+  uint8_t b2 = static_cast<uint8_t>(memory_[program_counter_ + 1]);
+  // print_instructions(b1, b2, program_counter_);
+  program_counter_ += 2;
+  uint8_t opcode = b1 >> 4u;
+  common::Status status = execute_[opcode](*this, b1, b2);
   return status;
 }
 
