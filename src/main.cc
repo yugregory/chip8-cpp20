@@ -14,7 +14,7 @@ constexpr int k_width = 64;
 constexpr int k_height = 32;
 constexpr int k_scale = 16;
 
-constexpr int k_cycles_per_second = 600;
+constexpr int k_cycles_per_second = 7200;
 constexpr int k_timer_frequency = 60;
 constexpr int k_cycles_per_frame = k_cycles_per_second / k_timer_frequency;
 
@@ -25,7 +25,7 @@ common::Status run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
   bool quit = false;
   while (true) {
     std::chrono::time_point frame_start = std::chrono::system_clock::now();
-    system.poll_events(quit, chip8.keypad_);
+    system.poll_events(quit, chip8);
     if (quit)
       return {};
     for (int i = 0; i < k_cycles_per_frame; i++) {
@@ -33,8 +33,10 @@ common::Status run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
       if (!status)
         return status;
     }
-    if (chip8.redraw_)
+    if (chip8.redraw_) {
+      chip8.redraw_ = false;
       system.draw(chip8);
+    }
     std::chrono::time_point frame_end = std::chrono::system_clock::now();
     std::chrono::duration<double, std::milli> d = frame_end - frame_start;
     std::chrono::duration<double, std::milli> sleep_time_ms =

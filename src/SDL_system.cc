@@ -30,14 +30,19 @@ SDLSystem::~SDLSystem() {
   SDL_Quit();
 }
 
-void SDLSystem::poll_events(bool &quit, std::array<uint8_t, 16> &keys) {
+void SDLSystem::poll_events(bool &quit, Chip8 &chip8) {
   SDL_Event event;
+  std::array<uint8_t, 16u> &keys = chip8.keypad_;
   while (SDL_PollEvent(&event)) {
     if (event.type == SDL_EVENT_QUIT) {
       quit = true;
     } else if (event.type == SDL_EVENT_KEY_DOWN ||
                event.type == SDL_EVENT_KEY_UP) {
-      uint8_t v = (event.type == SDL_EVENT_KEY_DOWN) ? 1u : 0u;
+      if (event.type == SDL_EVENT_KEY_DOWN)
+        chip8.waiting_for_key_press_ = false;
+      if (event.type == SDL_EVENT_KEY_UP)
+        chip8.waiting_for_key_release_ = false;
+      const uint8_t v = (event.type == SDL_EVENT_KEY_DOWN) ? 1u : 0u;
       switch (event.key.key) {
       case SDLK_X:
         keys[0u] = v;
