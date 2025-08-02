@@ -34,8 +34,8 @@ common::Status run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
         return status;
     }
     if (chip8.redraw_) {
-      chip8.redraw_ = false;
       system.draw(chip8);
+      chip8.redraw_ = false;
     }
     std::chrono::time_point frame_end = std::chrono::system_clock::now();
     std::chrono::duration<double, std::milli> d = frame_end - frame_start;

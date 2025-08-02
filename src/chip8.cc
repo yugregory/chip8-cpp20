@@ -45,7 +45,7 @@ void print_instructions(uint8_t b1, uint8_t b2, uint16_t program_counter) {
 common::Status zero(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   if (b1 == 0x00u) {
     if (b2 == 0xE0u) {
-      em.display_ = std::array<uint8_t, 64 * 32>{};
+      std::fill(std::begin(em.display_), std::end(em.display_), 0u);
       em.redraw_ = true;
     } else if (b2 == 0xEEu) {
       if (em.stack_pointer_ - 1 < 0) {
@@ -85,17 +85,21 @@ common::Status addv(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
 common::Status draw(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   uint8_t Vx = b1 & 0x0Fu;
   uint8_t Vy = (b2 & 0xF0u) >> 4u;
-  uint8_t height = b2 & 0x0Fu;
-  uint8_t x_coord = em.registers_[Vx] % 64;
-  uint8_t y_coord = em.registers_[Vy] % 32;
+  uint8_t height = (b2 & 0xFu);
+  int x_coord = em.registers_[Vx] % 64;
+  int y_coord = em.registers_[Vy] % 32;
   em.registers_[0xFu] = 0u;
   for (uint8_t i = 0u; i < height; i++) {
     uint8_t sprite_byte =
         static_cast<uint8_t>(em.memory_[em.index_register_ + i]);
+    int y = (y_coord + i);
+    if (y >= 32)
+      break;
     for (uint8_t j = 0u; j < 8u; j++) {
-      if ((sprite_byte & (0x80u >> j)) != 0u) {
-        int x = (x_coord + j) % 64;
-        int y = (y_coord + i) % 32;
+      if ((sprite_byte & (0x80u >> j))) {
+        int x = (x_coord + j);
+        if (x >= 64)
+          break;
         uint16_t pix = (y * 64) + x;
         if (em.display_[pix] == 1u) {
           em.registers_[0xFu] = 1u;
@@ -251,20 +255,14 @@ common::Status finstr(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
     em.registers_[Vx] = em.delay_timer_;
     break;
   case 0x0Au: {
-    bool set = false;
+    em.waiting_for_key_press_ = true;
     for (uint8_t i = 0; i < 16u; i++) {
       if (em.keypad_[i] == 1u) {
         em.waiting_for_key_press_ = false;
         em.waiting_for_key_release_ = true;
         em.registers_[Vx] = i;
-        set = true;
         break;
       }
-    }
-    if (!set) {
-      em.waiting_for_key_press_ = true;
-      em.waiting_for_key_release_ = false;
-      em.program_counter_ -= 2;
     }
     break;
   }
@@ -333,6 +331,9 @@ Chip8::Chip8()
   execute_[0xEu] = &skip_key;
   execute_[0xFu] = &finstr;
 
+  std::fill(std::begin(display_), std::end(display_), 0u);
+  std::fill(std::begin(registers_), std::end(registers_), 0u);
+  std::fill(std::begin(stack_), std::end(stack_), 0u);
   for (size_t i = 0; i < k_font_space; i++) {
     memory_[k_font_address + i] = static_cast<std::byte>(k_fontset[i]);
   }
@@ -370,7 +371,7 @@ common::Status Chip8::execute_cycle() {
   }
   uint8_t b1 = static_cast<uint8_t>(memory_[program_counter_]);
   uint8_t b2 = static_cast<uint8_t>(memory_[program_counter_ + 1]);
-  // print_instructions(b1, b2, program_counter_);
+  print_instructions(b1, b2, program_counter_);
   program_counter_ += 2;
   uint8_t opcode = b1 >> 4u;
   common::Status status = execute_[opcode](*this, b1, b2);
