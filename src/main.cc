@@ -14,7 +14,7 @@ constexpr int k_width = 64;
 constexpr int k_height = 32;
 constexpr int k_scale = 16;
 
-constexpr int k_cycles_per_second = 7200;
+constexpr int k_cycles_per_second = 600;
 constexpr int k_timer_frequency = 60;
 constexpr int k_cycles_per_frame = k_cycles_per_second / k_timer_frequency;
 

@@ -88,23 +88,19 @@ common::Status draw(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   uint8_t height = b2 & 0x0Fu;
   uint8_t x_coord = em.registers_[Vx] % 64;
   uint8_t y_coord = em.registers_[Vy] % 32;
-  ;
-  em.registers_[0xF] = 0;
-  for (uint8_t i = 0; i < height; i++) {
+  em.registers_[0xFu] = 0u;
+  for (uint8_t i = 0u; i < height; i++) {
     uint8_t sprite_byte =
         static_cast<uint8_t>(em.memory_[em.index_register_ + i]);
-    for (uint8_t j = 0; j < 8; j++) {
-      if ((sprite_byte & (0x80 >> j)) != 0) {
-        int x = (x_coord + j);
-        int y = (y_coord + i);
-        if (x >= 64 || y >= 32) {
-          continue;
+    for (uint8_t j = 0u; j < 8u; j++) {
+      if ((sprite_byte & (0x80u >> j)) != 0u) {
+        int x = (x_coord + j) % 64;
+        int y = (y_coord + i) % 32;
+        uint16_t pix = (y * 64) + x;
+        if (em.display_[pix] == 1u) {
+          em.registers_[0xFu] = 1u;
         }
-        int pix = (y * 64) + x;
-        if (em.display_[pix] == 1) {
-          em.registers_[0xF] = 1;
-        }
-        em.display_[pix] ^= 1;
+        em.display_[pix] ^= 1u;
       }
     }
   }
