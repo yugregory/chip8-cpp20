@@ -264,6 +264,9 @@ common::Status finstr(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
         break;
       }
     }
+    if (em.waiting_for_key_press_) {
+      em.program_counter_ -= 2;
+    }
     break;
   }
   case 0x15:
@@ -342,7 +345,7 @@ Chip8::Chip8()
   }
 }
 
-common::Status Chip8::loadRom(const std::filesystem::path &path) {
+common::Status Chip8::load_rom(const std::filesystem::path &path) {
   std::ifstream file(path, std::ios::binary | std::ios::ate);
   if (!file) {
     return std::unexpected(
@@ -359,14 +362,17 @@ common::Status Chip8::loadRom(const std::filesystem::path &path) {
   return {};
 }
 
-common::Status Chip8::execute_cycle() {
+void Chip8::decrement_timers() {
   if (delay_timer_ > 0) {
     --delay_timer_;
   }
   if (sound_timer_ > 0) {
     --sound_timer_;
   }
-  if (waiting_for_key_press_ || waiting_for_key_release_) {
+}
+
+common::Status Chip8::execute_cycle() {
+  if (waiting_for_key_press_ || waiting_for_key_release_ || redraw_) {
     return {};
   }
   uint8_t b1 = static_cast<uint8_t>(memory_[program_counter_]);

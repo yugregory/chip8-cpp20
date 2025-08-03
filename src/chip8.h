@@ -12,7 +12,8 @@ namespace chip8 {
 class Chip8 {
 public:
   Chip8();
-  common::Status loadRom(const std::filesystem::path &path);
+  common::Status load_rom(const std::filesystem::path &path);
+  void decrement_timers();
   common::Status execute_cycle();
 
 public:
