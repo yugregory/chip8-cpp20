@@ -3,6 +3,7 @@
 
 #include "app_error.h"
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <filesystem>
 #include <random>
@@ -21,17 +22,18 @@ public:
   std::uniform_int_distribution<uint8_t> rand_byte_;
 
   std::array<std::byte, 4096> memory_;
-  uint16_t program_counter_;
-  uint16_t index_register_ = 0;
+  uint16_t program_counter_ = 0u;
+  uint16_t index_register_ = 0u;
   std::array<std::uint8_t, 16> registers_;
   std::array<std::uint16_t, 16> stack_;
-  std::uint8_t stack_pointer_ = 0;
+  std::uint8_t stack_pointer_ = 0u;
 
   std::array<uint8_t, 64 * 32> display_;
-  bool redraw_;
+  bool redraw_ = false;
 
-  uint8_t delay_timer_;
-  uint8_t sound_timer_;
+  uint8_t delay_timer_ = 0u;
+  uint8_t sound_timer_ = 0u;
+  std::atomic<bool> should_beep_ = false;
 
   std::array<uint8_t, 16> keypad_;
   bool waiting_for_key_press_ = false;
