@@ -2,14 +2,21 @@
 #include "app_error.h"
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_audio.h>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
 namespace chip8 {
 
 namespace {
+constexpr int k_samples_per_second = 44100;
+constexpr int k_tone_hz = 440;
+constexpr int k_tone_volume = 3000;
+constexpr int k_square_wave_period = k_samples_per_second / k_tone_hz;
+constexpr int k_half_square_wave_period = k_square_wave_period / 2;
 
 void handle_quit_signals(int sig) {
   SDL_Event event;
@@ -20,10 +27,12 @@ void handle_quit_signals(int sig) {
 } // namespace
 
 SDLSystem::SDLSystem(int width, int height, SDL_Window *window,
-                     SDL_Renderer *renderer, SDL_Texture *texture)
+                     SDL_Renderer *renderer, SDL_Texture *texture,
+                     SDL_AudioStream *stream)
     : width_(width), height_(height), window_(window, SDL_DestroyWindow),
       renderer_(renderer, SDL_DestroyRenderer),
-      texture_(texture, SDL_DestroyTexture) {}
+      texture_(texture, SDL_DestroyTexture),
+      stream_(stream, SDL_DestroyAudioStream) {}
 
 SDLSystem::~SDLSystem() {
   std::cout << "Destructor is invoked" << std::endl;
@@ -99,6 +108,25 @@ void SDLSystem::poll_events(bool &quit, Chip8 &chip8) {
   }
 }
 
+void SDLSystem::publish_audio_stream(const Chip8 &chip8,
+                                     uint32_t &running_sample_index) {
+  const int samples_to_generate = k_samples_per_second / 60;
+  std::vector<Sint16> audio_buffer(samples_to_generate);
+
+  for (int i = 0; i < samples_to_generate; ++i) {
+    if (chip8.should_beep_.load()) {
+      audio_buffer[i] = ((running_sample_index / k_half_square_wave_period) % 2)
+                            ? k_tone_volume
+                            : -k_tone_volume;
+    } else {
+      audio_buffer[i] = 0;
+    }
+    running_sample_index++;
+  }
+  SDL_PutAudioStreamData(stream_.get(), audio_buffer.data(),
+                         audio_buffer.size() * sizeof(Sint16));
+}
+
 void SDLSystem::draw(const Chip8 &chip8) {
   for (int i = 0; i < width_ * height_; ++i) {
     screen_[i] = (chip8.display_[i] == 1) ? 0xFFFFFFFF : 0xFF000000;
@@ -113,17 +141,25 @@ void SDLSystem::draw(const Chip8 &chip8) {
 
 common::StatusOr<SDLSystem> create_sdl_system(int width, int height,
                                               int scale) {
-  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
   SDL_Window *window =
       SDL_CreateWindow("CHIP-8 Emulator", width * scale, height * scale, 0);
   SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr);
   SDL_Texture *texture =
       SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                         SDL_TEXTUREACCESS_STATIC, width, height);
+  static SDL_AudioSpec *src_spec = new SDL_AudioSpec();
+  src_spec->freq = k_samples_per_second;
+  src_spec->format = SDL_AUDIO_S16;
+  src_spec->channels = 1;
+  SDL_AudioStream *audio_stream = SDL_OpenAudioDeviceStream(
+      SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, src_spec, nullptr, nullptr);
+  SDL_AudioDeviceID dev = SDL_GetAudioStreamDevice(audio_stream);
+  SDL_ResumeAudioDevice(dev);
   signal(SIGINT, handle_quit_signals);
   signal(SIGTERM, handle_quit_signals);
   return common::StatusOr<SDLSystem>(std::in_place, width, height, window,
-                                     renderer, texture);
+                                     renderer, texture, audio_stream);
 }
 
 } // namespace chip8

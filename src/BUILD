@@ -32,8 +32,8 @@ cc_library(
     name = "sdl_lib",
     srcs = ["SDL_system.cc"],
     hdrs = [
+        "AV_system.h",
         "SDL_system.h",
-        "V_system.h",
     ],
     deps = [
         ":chip8",

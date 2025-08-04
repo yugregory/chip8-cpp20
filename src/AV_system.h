@@ -1,5 +1,5 @@
-#ifndef SRC_V_SYSTEM_H
-#define SRC_V_SYSTEM_H
+#ifndef SRC_AV_SYSTEM_H
+#define SRC_AV_SYSTEM_H
 
 #include "chip8.h"
 #include <array>
@@ -9,7 +9,7 @@
 namespace chip8 {
 
 template <typename T>
-concept VSystem = requires(T t, const Chip8 &chip8, int width, int height) {
+concept AVSystem = requires(T t, const Chip8 &chip8, int width, int height) {
   { T(width, height) };
 
   {
