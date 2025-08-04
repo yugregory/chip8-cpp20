@@ -8,19 +8,9 @@
 
 namespace chip8 {
 
-struct AudioState {
-  int samples_per_second;
-  int tone_hz;
-  int tone_volume;
-  uint32_t running_sample_index;
-  int square_wave_period;
-  int half_square_wave_period;
-};
-
 template <typename T>
-concept AVSystem = requires(T t, const Chip8 &chip8, int width, int height,
-                            AudioState &audio_state) {
-  { T(width, height, audio_state) };
+concept AVSystem = requires(T t, const Chip8 &chip8, int width, int height) {
+  { T(width, height) };
 
   {
     t.poll_events(std::declval<bool &>(), std::declval<Chip8 &>())

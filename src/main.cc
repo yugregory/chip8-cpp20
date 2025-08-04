@@ -23,6 +23,7 @@ constexpr auto k_time_per_frame_ms =
 
 common::Status run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
   bool quit = false;
+  uint32_t running_sample_index = 0;
   while (true) {
     std::chrono::time_point frame_start = std::chrono::system_clock::now();
     system.poll_events(quit, chip8);
@@ -34,6 +35,7 @@ common::Status run(chip8::Chip8 &chip8, chip8::SDLSystem &system) {
         return status;
     }
     chip8.decrement_timers();
+    system.publish_audio_stream(chip8, running_sample_index);
     if (chip8.redraw_) {
       system.draw(chip8);
       chip8.redraw_ = false;

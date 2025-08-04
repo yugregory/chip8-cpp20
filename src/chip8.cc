@@ -369,9 +369,9 @@ void Chip8::decrement_timers() {
   if (sound_timer_ > 0) {
     should_beep_.store(true);
     --sound_timer_;
-    if (sound_timer_ == 0) {
-      should_beep_.store(false);
-    }
+  }
+  if (sound_timer_ == 0) {
+    should_beep_.store(false);
   }
 }
 
