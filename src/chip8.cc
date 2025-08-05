@@ -45,7 +45,7 @@ void print_instructions(uint8_t b1, uint8_t b2, uint16_t program_counter) {
 common::Status zero(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   if (b1 == 0x00u) {
     if (b2 == 0xE0u) {
-      std::fill(std::begin(em.display_), std::end(em.display_), 0u);
+      em.display_ = {};
       em.redraw_ = true;
     } else if (b2 == 0xEEu) {
       if (em.stack_pointer_ - 1 < 0) {
@@ -334,14 +334,8 @@ Chip8::Chip8()
   execute_[0xEu] = &skip_key;
   execute_[0xFu] = &finstr;
 
-  std::fill(std::begin(display_), std::end(display_), 0u);
-  std::fill(std::begin(registers_), std::end(registers_), 0u);
-  std::fill(std::begin(stack_), std::end(stack_), 0u);
   for (size_t i = 0; i < k_font_space; i++) {
     memory_[k_font_address + i] = static_cast<std::byte>(k_fontset[i]);
-  }
-  for (size_t i = 0; i < 16; i++) {
-    keypad_[i] = 0u;
   }
 }
 
@@ -381,7 +375,7 @@ common::Status Chip8::execute_cycle() {
   }
   uint8_t b1 = static_cast<uint8_t>(memory_[program_counter_]);
   uint8_t b2 = static_cast<uint8_t>(memory_[program_counter_ + 1]);
-  print_instructions(b1, b2, program_counter_);
+  // print_instructions(b1, b2, program_counter_);
   program_counter_ += 2;
   uint8_t opcode = b1 >> 4u;
   common::Status status = execute_[opcode](*this, b1, b2);
