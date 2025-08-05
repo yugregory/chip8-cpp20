@@ -114,7 +114,7 @@ void SDLSystem::publish_audio_stream(const Chip8 &chip8,
   std::vector<Sint16> audio_buffer(samples_to_generate);
 
   for (int i = 0; i < samples_to_generate; ++i) {
-    if (chip8.should_beep_.load()) {
+    if (chip8.should_beep_) {
       audio_buffer[i] = ((running_sample_index / k_half_square_wave_period) % 2)
                             ? k_tone_volume
                             : -k_tone_volume;

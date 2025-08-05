@@ -3,7 +3,6 @@
 
 #include "app_error.h"
 #include <array>
-#include <atomic>
 #include <cstddef>
 #include <filesystem>
 #include <random>
@@ -33,7 +32,7 @@ public:
 
   uint8_t delay_timer_ = 0u;
   uint8_t sound_timer_ = 0u;
-  std::atomic<bool> should_beep_ = false;
+  bool should_beep_ = false;
 
   std::array<uint8_t, 16> keypad_;
   bool waiting_for_key_press_ = false;
