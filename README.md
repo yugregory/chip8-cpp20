@@ -37,3 +37,7 @@ bazel run src:main {$PATH_TO_YOUR_CHIP8_ROM}
 
 ## Benchmarks
 
+## Acknowledgments
+- [Cowgod's Chip-8 Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
+- [Timendus chip8-test-suite](https://github.com/Timendus/chip8-test-suite)
+- [Austin Morlan chip8_emulator](https://austinmorlan.com/posts/chip8_emulator/)
