@@ -7,6 +7,7 @@ Some Language + STL features used include concepts, std::expected
 1. [Bazel](https://bazel.build/) - Build Tool/System
 2. [LLVM](https://llvm.org/) - Compiler Infrastructure, Includes multiple subprojects used below (clang, libc++, BOLT, etc.)
 3. [SDL3](https://wiki.libsdl.org/SDL3/FrontPage) - Audio/Visual/IO Library
+4. [xctrace](https://keith.github.io/xcode-man-pages/xctrace.1.html) - Profile programs running on MacOS
 
 ## Run
 
@@ -14,7 +15,7 @@ Some Language + STL features used include concepts, std::expected
 bazel run src:main {$PATH_TO_YOUR_CHIP8_ROM}
 ```
 
-### Optimizations
+## Optimizations
 
 #### Removing Branch Prediction
 
@@ -33,4 +34,6 @@ bazel run src:main {$PATH_TO_YOUR_CHIP8_ROM}
 #### BOLT
 
 #### Propeller
+
+## Benchmarks
 
