@@ -23,7 +23,7 @@ bazel run src:main {$PATH_TO_YOUR_CHIP8_ROM}
 
 ## Optimizations
 
-#### Decreasing Branch Prediction
+### Decreasing Branch Prediction
 
 One of the things that our chip8 emulator needs to do is determine which opcode to run from the ROM and execute that operation. There are 36 different opcodes.
 
@@ -41,7 +41,7 @@ The belief here is this will keep functions runtime cost stable regardless of wh
 **Hypothesis: If our chip8 emulator uses a table of function pointers (as opposed to chained if-else statements), the runtime of the function that determines which opcode to run will have a 
 lower standard deviation through the multiple calls to the function.**
 
-#### Data Layout
+### Data Layout
 
 The chip8 emulator stores many variables within its class that help to simulate the hardware of the original chip8. There's memory, the registers, the stack, etc.
 
@@ -68,19 +68,19 @@ One potential slowdown during a programs execution is that its data members are 
 
 **Hypothesis 2: If our chip8 emulator packs its data member variables relative to their usage, we will have even further improved runtime execution.**
 
-#### SIMD
+### SIMD
 
-### Linker Optimizations
+## Linker Optimizations
 
-#### LTO
+### LTO
 
-#### PGO
+### PGO
 
-### Post Link Optimizations
+## Post Link Optimizations
 
-#### BOLT
+### BOLT
 
-#### Propeller
+### Propeller
 
 ## Acknowledgments
 - [Cowgod's Chip-8 Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
