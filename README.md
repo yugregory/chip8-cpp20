@@ -70,6 +70,18 @@ One potential slowdown during a programs execution is that its data members are 
 
 ### SIMD
 
+SIMD stands for single instruction, multiple data. Some hardware exposes ways to perform modifications to their vector registers in a single instruction.
+
+The benefit is that instead of spending say 4 cpu cyles modifying each of 4 registers independently, we could modify all 4 registers in a single cpu cycle.
+
+The SIMD api is hardware/cpu dependent. (i.e. ARM Neon, x86 MMX, SSE, AVX). I'm primarily developing on a M4 Mac Mini, which uses the ARM, which means under the hood we would be using ARM Neon.
+
+Luckily for us Google has created [Highway](https://github.com/google/highway), which makes SIMD programming more portable between different CPU architectures/ISA's.
+
+**Hypothesis: If our chip8 emulator uses SIMD for updating its display, we will see a speedup for our draw opcode/function.**
+
+*NOTE: Modern compilers are very good at already generating the correct optimized SIMD instructions. -O2, -03 or -ftree-vectorize will enable the optimizations. You can use objdump to see the assembly of the source file and look for the relevant vector instructions. Our benchmarks will see the difference between which compiler optimized SIMD instructions are enabled vs. our explicit ones using Google Highway*
+
 ## Linker Optimizations
 
 ### LTO
