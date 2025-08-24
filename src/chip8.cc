@@ -1,12 +1,13 @@
 #include "chip8.h"
 #include "app_error.h"
 
+#include <arm_neon.h>
+
 #include <expected>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <random>
-#include <vector>
 
 namespace chip8 {
 namespace {
@@ -82,15 +83,13 @@ common::Status addv(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   return {};
 }
 
-common::Status draw(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
+common::Status scalar_draw(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   uint8_t Vx = b1 & 0x0Fu;
   uint8_t Vy = (b2 & 0xF0u) >> 4u;
   uint8_t height = (b2 & 0xFu);
   int x_coord = em.registers_[Vx] % 64;
   int y_coord = em.registers_[Vy] % 32;
   em.registers_[0xFu] = 0u;
-#if defined(USE_VECTOR_DRAW)
-#else
   for (uint8_t i = 0u; i < height; i++) {
     uint8_t sprite_byte =
         static_cast<uint8_t>(em.memory_[em.index_register_ + i]);
@@ -110,9 +109,45 @@ common::Status draw(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
       }
     }
   }
-#endif
-  em.redraw_ = true;
   return {};
+}
+
+common::Status vector_draw(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
+  uint8_t Vx = b1 & 0x0Fu;
+  uint8_t Vy = (b2 & 0xF0u) >> 4u;
+  uint8_t height = (b2 & 0xFu);
+  int x_coord = em.registers_[Vx] % 64;
+  // Scalar draw to prevent any overflow for simd
+  if (x_coord + 8 > 64) {
+    return scalar_draw(em, b1, b2);
+  }
+  int y_coord = em.registers_[Vy] % 32;
+  em.registers_[0xFu] = 0u;
+  for (uint8_t i = 0u; i < height; i++) {
+    int y = (y_coord + i);
+    if (y >= 32)
+      break;
+    const std::array<uint8_t, 8> &sprite = em.sprite_table_[y];
+    int start_pixel = y * 32 + x_coord;
+    uint8x8_t display_pixels = vld1_u8(&em.display_[start_pixel]);
+    uint8x8_t sprite_mask = vld1_u8(sprite.data());
+    uint8_t max_val_in_display = vmaxv_u8(display_pixels);
+    if (max_val_in_display > 0) {
+      em.registers_[0xFu] = 1u;
+    }
+    uint8x8_t result = veor_u8(display_pixels, sprite_mask);
+    vst1_u8(&em.display_[start_pixel], result);
+  }
+  return {};
+}
+
+common::Status draw(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
+  em.redraw_ = true;
+#if defined(USE_VECTOR_DRAW)
+  return vector_draw(em, b1, b2);
+#else
+  return scalar_draw(em, b1, b2);
+#endif
 }
 
 common::Status call(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
@@ -339,6 +374,11 @@ Chip8::Chip8()
 
   for (size_t i = 0; i < k_font_space; i++) {
     memory_[k_font_address + i] = static_cast<std::byte>(k_fontset[i]);
+  }
+  for (size_t i = 0; i < 32; i++) {
+    for (size_t j = 0; j < 8; j++) {
+      sprite_table_[i][j] = (i & (0x80u >> j)) ? 1u : 0u;
+    }
   }
 }
 
