@@ -74,9 +74,8 @@ SIMD stands for single instruction, multiple data. Some hardware exposes ways to
 
 The benefit is that instead of spending say 4 cpu cyles modifying each of 4 registers independently, we could modify all 4 registers in a single cpu cycle.
 
-The SIMD api is hardware/cpu dependent. (i.e. ARM Neon, x86 MMX, SSE, AVX). I'm primarily developing on a M4 Mac Mini, which uses the ARM, which means under the hood we would be using ARM Neon.
-
-Luckily for us Google has created [Highway](https://github.com/google/highway), which makes SIMD programming more portable between different CPU architectures/ISA's.
+The SIMD api is hardware/cpu dependent. (i.e. ARM Neon, x86 MMX, SSE, AVX). 
+I'm primarily developing on a M4 Mac Mini, which uses the ARM, which means under the hood we would be using ARM Neon.
 
 **Hypothesis: If our chip8 emulator uses SIMD for updating its display, we will see a speedup for our draw opcode/function.**
 

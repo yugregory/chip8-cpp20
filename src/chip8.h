@@ -28,6 +28,7 @@ public:
   std::uint8_t stack_pointer_ = 0u;
 
   std::array<uint8_t, 64 * 32> display_ = {};
+  std::array<std::array<uint8_t, 8>, 256> sprite_table_;
   bool redraw_ = false;
 
   uint8_t delay_timer_ = 0u;
