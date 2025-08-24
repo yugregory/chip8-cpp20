@@ -79,7 +79,7 @@ I'm primarily developing on a M4 Mac Mini, which uses the ARM, which means under
 
 **Hypothesis: If our chip8 emulator uses SIMD for updating its display, we will see a speedup for our draw opcode/function.**
 
-*NOTE: Modern compilers are very good at already generating the correct optimized SIMD instructions. -O2, -03 or -ftree-vectorize will enable the optimizations. You can use objdump to see the assembly of the source file and look for the relevant vector instructions. Our benchmarks will see the difference between which compiler optimized SIMD instructions are enabled vs. our explicit ones using Google Highway*
+*NOTE: Modern compilers are very good at already generating the correct optimized SIMD instructions. -O2, -O3 or -ftree-vectorize will enable the optimizations. You can use objdump to see the assembly of the source file and look for the relevant vector instructions. Our benchmarks will see the difference between which compiler optimized SIMD instructions are enabled vs. our explicit ones using Google Highway*
 
 ## Linker Optimizations
 
