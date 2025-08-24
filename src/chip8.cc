@@ -89,6 +89,8 @@ common::Status draw(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
   int x_coord = em.registers_[Vx] % 64;
   int y_coord = em.registers_[Vy] % 32;
   em.registers_[0xFu] = 0u;
+#if defined(USE_VECTOR_DRAW)
+#else
   for (uint8_t i = 0u; i < height; i++) {
     uint8_t sprite_byte =
         static_cast<uint8_t>(em.memory_[em.index_register_ + i]);
@@ -108,6 +110,7 @@ common::Status draw(chip8::Chip8 &em, uint8_t b1, uint8_t b2) {
       }
     }
   }
+#endif
   em.redraw_ = true;
   return {};
 }
