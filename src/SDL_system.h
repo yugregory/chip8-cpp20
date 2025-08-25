@@ -5,6 +5,8 @@
 #include "app_error.h"
 #include "chip8.h"
 
+#include <arm_neon.h>
+
 #include <SDL3/SDL.h>
 #include <array>
 #include <memory>
@@ -25,8 +27,13 @@ public:
   void publish_audio_stream(const Chip8 &chip8, uint32_t &running_sample_index);
 
 private:
-  int width_;
-  int height_;
+  const int width_;
+  const int height_;
+  const int pixels_;
+
+  const uint32x4_t on_;
+  const uint32x4_t off_;
+  const uint32x4_t ones_;
 
   std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window_;
   std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> renderer_;
