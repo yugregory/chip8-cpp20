@@ -1,6 +1,8 @@
 #include "SDL_system.h"
 #include "app_error.h"
 
+#include <arm_neon.h>
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_audio.h>
 #include <cstdlib>
@@ -29,7 +31,9 @@ void handle_quit_signals(int sig) {
 SDLSystem::SDLSystem(int width, int height, SDL_Window *window,
                      SDL_Renderer *renderer, SDL_Texture *texture,
                      SDL_AudioStream *stream)
-    : width_(width), height_(height), window_(window, SDL_DestroyWindow),
+    : width_(width), height_(height), pixels_(width * height),
+      on_(vdupq_n_u32(0xFFFFFFFF)), off_(vdupq_n_u32(0xFF000000)),
+      ones_(vdupq_n_u32(1)), window_(window, SDL_DestroyWindow),
       renderer_(renderer, SDL_DestroyRenderer),
       texture_(texture, SDL_DestroyTexture),
       stream_(stream, SDL_DestroyAudioStream) {}
@@ -128,9 +132,34 @@ void SDLSystem::publish_audio_stream(const Chip8 &chip8,
 }
 
 void SDLSystem::draw(const Chip8 &chip8) {
-  for (int i = 0; i < width_ * height_; ++i) {
+#if defined(USE_VECTOR_DRAW)
+  int step_size = 16;
+  for (int i = 0; i < pixels_; i += step_size) {
+    uint8x16_t input = vld1q_u8(chip8.display_.data() + i);
+    uint16x8_t low = vmovl_u8(vget_low_u8(input));
+    uint16x8_t high = vmovl_u8(vget_high_u8(input));
+    uint32x4_t p1 = vmovl_u16(vget_low_u16(low));
+    uint32x4_t p2 = vmovl_u16(vget_high_u16(low));
+    uint32x4_t p3 = vmovl_u16(vget_low_u16(high));
+    uint32x4_t p4 = vmovl_u16(vget_high_u16(high));
+    uint32x4_t mask1 = vceqq_u32(p1, ones_);
+    uint32x4_t mask2 = vceqq_u32(p2, ones_);
+    uint32x4_t mask3 = vceqq_u32(p3, ones_);
+    uint32x4_t mask4 = vceqq_u32(p4, ones_);
+    uint32x4_t result1 = vbslq_u32(mask1, on_, off_);
+    uint32x4_t result2 = vbslq_u32(mask2, on_, off_);
+    uint32x4_t result3 = vbslq_u32(mask3, on_, off_);
+    uint32x4_t result4 = vbslq_u32(mask4, on_, off_);
+    vst1q_u32(screen_.data() + i, result1);
+    vst1q_u32(screen_.data() + i + 4, result2);
+    vst1q_u32(screen_.data() + i + 8, result3);
+    vst1q_u32(screen_.data() + i + 12, result4);
+  }
+#else
+  for (int i = 0; i < pixels_; ++i) {
     screen_[i] = (chip8.display_[i] == 1) ? 0xFFFFFFFF : 0xFF000000;
   }
+#endif
 
   SDL_UpdateTexture(texture_.get(), NULL, screen_.data(),
                     width_ * sizeof(uint32_t));
