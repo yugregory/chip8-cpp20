@@ -85,9 +85,21 @@ I'm primarily developing on a M4 Mac Mini, which uses the ARM, which means under
 
 ### LTO
 
-### PGO
+LTO Stands for Link Time Optimization, it solves a problem where the compiler builds each set of compilation units into object files seperately and the linker resolves the files of the binary at link time.
 
-## Post Link Optimizations
+The issue with the above process is that the linker just stitches the object files into the executable, without any knowledge of how the object files interact with each other. Which causes some of the following issues:
+
+1. Inlining of functions across files is not achieved
+2. Inlining of values across files is be achieved
+3. Dead code elimination is not achieved
+
+Those above inlinings can reduce pressure on the cpu's instruction cache and further reduce data lookups depending on the optimizations achieved.
+
+With LTO turned on the compiler generates intermediate files, and in the case of LLVM, it will generate LLVM IR (intermediate representation) files that the linker will feed back into the compiler for an optimizaion pass, before the final linking into our executable.
+
+**Hypothesis: If our chip8 emulator is built with LTO, we will see a overall speedup in our program across different ROMS.**
+
+## Profile Guided Optimizations
 
 ### BOLT
 
