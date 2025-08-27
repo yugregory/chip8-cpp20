@@ -83,9 +83,9 @@ I'm primarily developing on a M4 Mac Mini, which uses the ARM, which means under
 
 ## Linker Optimizations
 
-### LTO
+### LTO (Link Time Optimization)
 
-LTO Stands for Link Time Optimization, it solves a problem where the compiler builds each set of compilation units into object files seperately and the linker resolves the files of the binary at link time.
+LTO solves a problem where the compiler builds each set of compilation units into object files seperately and the linker resolves the files of the binary at link time.
 
 The issue with the above process is that the linker just stitches the object files into the executable, without any knowledge of how the object files interact with each other. Which causes some of the following issues:
 
@@ -99,7 +99,21 @@ With LTO turned on the compiler generates intermediate files, and in the case of
 
 **Hypothesis: If our chip8 emulator is built with LTO, we will see a overall speedup in our program across different ROMS.**
 
-## Profile Guided Optimizations
+## PGO (Profile Guided Optimization)
+
+PGO solves the problem where a compiler cannot optimize the layout of the binary data for the executable because it has no understanding of how the program actually runs on representative workflows.
+
+While LTO gives a full understanding of the program itself, it does not understand the actual runtime patterns of the program.
+
+With PGO, we get some of the following benefits:
+
+1. Better inlining for hot code
+2. Better branch prediction
+3. Improved code layout for better cache efficiency
+
+The way PGO works is we generate a profile based on the actual programs runtime characteristics for some duration of time. With this profile, we recompile the program based on the profile which allows the compiler to group/inline hot code together and separate out cold code.
+
+**Hypothesis: If our chip8 emulator is built with representative profile using PGO, we will see a overall speedup in our program across different ROMS.**
 
 ### BOLT
 
