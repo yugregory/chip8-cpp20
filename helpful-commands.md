@@ -5,6 +5,11 @@
 ### copts
 1. O2, O3
 2. DUSE_VECTOR_DRAW
+3. flto
+4. fprofile-instr-generate (To generate profile) 
+  - Creates a default .profraw file
+  - llvm-profdat merge -o <prof-file.profdata> <prof-raw-file.profraw>
+5. fprofile-instr-use=<prof-file.profdata> (To build binary with profile data)
 
 ## Trace
 
