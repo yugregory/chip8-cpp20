@@ -113,11 +113,12 @@ With PGO, we get some of the following benefits:
 
 The way PGO works is we generate a profile based on the actual programs runtime characteristics for some duration of time. With this profile, we recompile the program based on the profile which allows the compiler to group/inline hot code together and separate out cold code.
 
-**Hypothesis: If our chip8 emulator is built with representative profile using PGO, we will see a overall speedup in our program across different ROMS.**
+**Hypothesis 2: If our chip8 emulator is built with representative profile using PGO, we will see a overall speedup in our program across different ROMS.**
 
-### BOLT
+Beyond standard PGO exists optimizations that are Post Link Optimizations. [BOLT](https://research.facebook.com/publications/bolt-a-practical-binary-optimizer-for-data-centers-and-beyond/) and [Propeller](https://research.google/pubs/propeller-a-profile-guided-relinking-optimizer-for-warehouse-scale-applications/) are the main options. 
+They differ from standard PGO in that they rearrange the assembled code for better cache locality **after** linking. This involves steps of completely moving "colder" code paths into their own separate parts of instruction memory.
 
-### Propeller
+**Hypothesis 2: If our chip8 emulator is optimized with Post Link Optimization, we will see a further speedup in our program across different ROMS than our optimization with just PGO.**
 
 ## Acknowledgments
 - [Cowgod's Chip-8 Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
