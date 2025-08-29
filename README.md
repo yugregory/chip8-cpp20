@@ -81,7 +81,7 @@ I'm primarily developing on a M4 Mac Mini, which uses the ARM, which means under
 
 *NOTE: Modern compilers are very good at already generating the correct optimized SIMD instructions. -O2, -O3 or -ftree-vectorize will enable the optimizations. You can use objdump to see the assembly of the source file and look for the relevant vector instructions. Our benchmarks will see the difference between which compiler optimized SIMD instructions are enabled vs. our explicit ones using ARM Neon*
 
-## Linker Optimizations
+## Compiler + Linker Optimizations
 
 ### LTO (Link Time Optimization)
 
@@ -99,7 +99,7 @@ With LTO turned on the compiler generates intermediate files, and in the case of
 
 **Hypothesis: If our chip8 emulator is built with LTO, we will see a overall speedup in our program across different ROMS.**
 
-## PGO (Profile Guided Optimization)
+### PGO (Profile Guided Optimization) and Post Link Optimization
 
 PGO solves the problem where a compiler cannot optimize the layout of the binary data for the executable because it has no understanding of how the program actually runs on representative workflows.
 
